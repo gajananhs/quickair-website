@@ -21,7 +21,7 @@ import Testimonials from '@/components/sections/Testimonials'
 import ClientMarquee from '@/components/sections/ClientMarquee'
 import ContactCta from '@/components/sections/ContactCta'
 
-const AssemblyCanvas = lazy(() => import('@/components/three/AssemblyCanvas'))
+const HeroAssembly = lazy(() => import('@/components/three/HeroAssembly'))
 
 function Hero() {
   const ref = useRef(null)
@@ -46,7 +46,7 @@ function Hero() {
         ))}
       </svg>
 
-      <Container className="flex flex-1 flex-col">
+      <Container className="pointer-events-none flex flex-1 flex-col *:pointer-events-auto">
         <div data-hero-copy className="flex max-w-2xl flex-col pt-8 lg:flex-1 lg:justify-center lg:pt-0 lg:pb-10">
           <Reveal start="top bottom">
             <Eyebrow>{heroSlides[0].title}</Eyebrow>
@@ -70,7 +70,7 @@ function Hero() {
 
         <div data-hero-stage className="relative -z-10 -mx-(--gutter) h-[38svh] min-h-64 flex-1 lg:absolute lg:inset-y-0 lg:right-0 lg:left-[38%] lg:mx-0 lg:h-auto">
           <Suspense fallback={null}>
-            <AssemblyCanvas idle />
+            <HeroAssembly />
           </Suspense>
         </div>
 

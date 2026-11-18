@@ -18,6 +18,12 @@
  * drag to rotate, hover a part to highlight it (onHover receives its name),
  * and setExplode(0..1) pulls the parts apart.
  *
+ * With `links: true` (hero use) the presentation is unchanged, but parts can be
+ * hovered or tapped: the part glows as in explore mode, onHover receives it,
+ * onAnchor(x, y) reports its on-screen position every frame (so a label can
+ * follow it while the model rotates) and onPick(part, pointerType) fires on a
+ * click or tap.
+ *
  * createAssemblyScene(container, options) → { setProgress, setExplode, dispose }
  */
 import * as THREE from 'three'
@@ -32,7 +38,7 @@ const smooth = (a, b, x) => {
 }
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3)
 
-export function createAssemblyScene(container, { idle = false, animate = true, interactive = true, shift = false, explore = false, onHover = null } = {}) {
+export function createAssemblyScene(container, { idle = false, animate = true, interactive = true, shift = false, explore = false, links = false, onHover = null, onPick = null, onAnchor = null } = {}) {
   const lowPower = window.innerWidth < 768 || (navigator.hardwareConcurrency ?? 8) <= 4
   const SEG = lowPower ? 20 : 40
 
@@ -318,7 +324,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
     p.name = NAMES.get(p) ?? (p.kind === 'pipe' ? 'Aluminium modular piping' : 'Clamps and brackets')
     p.group.traverse((o) => { o.userData.part = p })
   }
-  if (explore) {
+  if (explore || links) {
     // every pipe gets its own material so it can glow when hovered
     for (const p of parts) {
       if (p.kind !== 'pipe') continue
@@ -357,6 +363,10 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
   let spin = 0
   let manualExplode = 0
   let explodeShown = 0
+  // links mode
+  let glowing = false
+  let updateLinks = null
+  let clearTouch = null
 
   const apply = (p, time) => {
     const explode = explore ? explodeShown : smooth(0.5, 0.64, p) * (1 - smooth(0.74, 0.9, p))
@@ -380,6 +390,15 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
       for (const part of parts) {
         const m = part.body ?? part.glow
         if (m) m.emissiveIntensity += ((part === hovered ? 0.9 : 0) - m.emissiveIntensity) * 0.25
+      }
+    } else if (links && (hovered || glowing)) {
+      glowing = false
+      for (const part of parts) {
+        const m = part.body ?? part.glow
+        if (!m) continue
+        const target = part === hovered ? 0.9 : 0
+        m.emissiveIntensity = animate ? m.emissiveIntensity + (target - m.emissiveIntensity) * 0.25 : target
+        if (m.emissiveIntensity > 0.001) glowing = true
       }
     } else {
       const sweep = (p - 0.14) / 0.2
@@ -422,6 +441,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
     pointer.sx += (pointer.x - pointer.sx) * ease
     pointer.sy += (pointer.y - pointer.sy) * ease
     apply(shown, time)
+    updateLinks?.()
     renderer.render(scene, camera)
     frame = requestAnimationFrame(render)
   }
@@ -436,6 +456,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
   }
   const renderOnce = () => {
     apply(progress, 0)
+    updateLinks?.()
     renderer.render(scene, camera)
   }
 
@@ -488,6 +509,59 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
     el.addEventListener('pointerleave', release)
   }
 
+  // --- links mode: hover or tap a part to identify it, click it to open its product page ---
+  if (links) {
+    const el = renderer.domElement
+    const raycaster = new THREE.Raycaster()
+    const ndc = new THREE.Vector2()
+    const anchor = V(0, 0, 0)
+    let mouse = null // last mouse position over the canvas
+    let anchored = null // last part shown, so its label keeps following it
+    let down = null
+    const partAt = (x, y) => {
+      const rect = el.getBoundingClientRect()
+      ndc.set(((x - rect.left) / rect.width) * 2 - 1, -((y - rect.top) / rect.height) * 2 + 1)
+      raycaster.setFromCamera(ndc, camera)
+      return raycaster.intersectObjects(assembly.children, true)[0]?.object.userData.part ?? null
+    }
+    const setHovered = (p) => {
+      if (p === hovered) return
+      hovered = p
+      if (p) anchored = p
+      el.style.cursor = p ? 'pointer' : ''
+      onHover?.(p ? { id: p.index, name: p.name, kind: p.kind } : null)
+      if (!frame) renderOnce()
+    }
+    updateLinks = () => {
+      // the model keeps turning under a still cursor, so re-check what is under it
+      if (mouse && animate) setHovered(partAt(mouse.x, mouse.y))
+      if (!anchored || !onAnchor) return
+      anchored.group.getWorldPosition(anchor).project(camera)
+      onAnchor(((anchor.x + 1) / 2) * el.clientWidth, ((1 - anchor.y) / 2) * el.clientHeight)
+    }
+    el.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return
+      mouse = { x: e.clientX, y: e.clientY }
+      setHovered(partAt(e.clientX, e.clientY))
+    })
+    el.addEventListener('pointerleave', (e) => {
+      if (e.pointerType !== 'mouse') return
+      mouse = null
+      setHovered(null)
+    })
+    el.addEventListener('pointerdown', (e) => (down = { x: e.clientX, y: e.clientY }))
+    el.addEventListener('pointercancel', () => (down = null))
+    el.addEventListener('pointerup', (e) => {
+      // a click or tap, not a scroll or drag
+      if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) return (down = null)
+      down = null
+      const p = partAt(e.clientX, e.clientY)
+      onPick?.(p ? { id: p.index, name: p.name, kind: p.kind } : null, e.pointerType)
+      if (e.pointerType !== 'mouse') setHovered(p) // touch: a tap shows the label
+    })
+    clearTouch = () => setHovered(null)
+  }
+
   const resize = () => {
     const { clientWidth: w, clientHeight: h } = container
     if (!w || !h) return
@@ -517,6 +591,10 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
     setProgress(value) {
       progress = clamp01(value)
       if (!animate) renderOnce()
+    },
+    /** links mode: hide the label shown by a tap */
+    clearHover() {
+      clearTouch?.()
     },
     dispose() {
       disposed = true
