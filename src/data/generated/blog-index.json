@@ -1,0 +1,132 @@
+{
+ "intro": "Guides on aluminum compressed air piping, modular piping systems, pipe sizing, and leak-free, corrosion-resistant industrial piping solutions.",
+ "cards": [
+  {
+   "image": "/qa/media/compressed-air-pipe.webp",
+   "title": "Aluminium Compressed Air",
+   "excerpt": "Discover how aluminium compressed air piping systems work, their benefits over steel and copper, key components, and how to choose the right modular system",
+   "to": "/blog/aluminium-compressed-air"
+  },
+  {
+   "image": "/qa/media/3.webp",
+   "title": "Aluminium vs Steel Piping",
+   "excerpt": "Compare aluminium and steel compressed air piping on cost, corrosion, installation time, and long-term ROI to choose the right system for your plant.",
+   "to": "/blog/aluminium-vs-steel-compressed-air-pipe"
+  },
+  {
+   "image": "/qa/media/air-pipe-sizing-guide.webp",
+   "title": "Air pipe sizing guide",
+   "excerpt": "Learn how to size compressed air piping correctly using CFM and pressure requirements, avoid pressure drop, and prevent the most common sizing mistakes.",
+   "to": "/blog/air-pipe-sizing-guide"
+  },
+  {
+   "image": "/qa/media/5.webp",
+   "title": "Compressed Air Leak",
+   "excerpt": "Learn compressed air leak detection methods, warning signs, and how much leaks really cost your facility. Fix leaks and cut energy bills today.",
+   "to": "/blog/compressed-air-leak-detection"
+  },
+  {
+   "image": "/qa/media/4.webp",
+   "title": "Air Piping Installation",
+   "excerpt": "This guide walks through planning, installing, and testing a modular aluminium compressed air piping system correctly, step by step.",
+   "to": "/blog/modular-compressed-air-piping-installation"
+  },
+  {
+   "image": "/qa/media/2.webp",
+   "title": "Air System Maintenance",
+   "excerpt": "A structured compressed air system maintenance routine is one of the simplest ways to prevent unexpected downtime, protect your equipment investment, and keep energy costs.",
+   "to": "/blog/compressed-air-system-maintenance"
+  },
+  {
+   "title": "Modular Piping System",
+   "excerpt": "compressed air distribution system, leak-free piping, energy efficient piping, aluminum piping system, industrial piping",
+   "to": "/blog/modular-piping-system"
+  },
+  {
+   "title": "Corrosion Resistant Piping",
+   "excerpt": "Corrosion is one of the most expensive problems in industrial piping — and one of the easiest to prevent with the right material choice",
+   "to": "/blog/corrosion-resistant-piping"
+  },
+  {
+   "image": "/qa/media/energy-efficient-piping.webp",
+   "title": "Energy Efficient Piping Guide",
+   "excerpt": "A structured compressed air system maintenance routine is one of the simplest ways to prevent unexpected one",
+   "to": "/blog/energy-efficient-piping"
+  },
+  {
+   "title": "Costly Air Leaks",
+   "excerpt": "Generating compressed air is highly energy-intensive.Only a small portion of the electrical energy becomes usable compressed air.Most of the energy is lost as heat during the compression process.",
+   "to": "/blog/compressed-air-leaks-in-manufacturing"
+  },
+  {
+   "title": "SS air piping",
+   "excerpt": "Aluminium piping gets most of the attention in compressed air discussions, and for good reason — it's lightweight, corrosion-resistant, and easy to install.",
+   "to": "/blog/stainless-steel-compressed-air-piping-when-to-use-it"
+  },
+  {
+   "title": "PEX Compressed Piping",
+   "excerpt": "Is PEX piping suitable for compressed air? Learn where PEX works well, its pressure and temperature limits, and how it compares to aluminium and steel.",
+   "to": "/blog/pex-compressed-air-piping-is-it-right-for-your-facility"
+  },
+  {
+   "image": "/qa/media/compressed-air-1-scaled.webp",
+   "title": "Air Piping Systems",
+   "excerpt": "Explore compressed air piping systems, their benefits, applications, and how to choose reliable compressed air piping system suppliers in India for industrial needs.",
+   "to": "/blog/air-piping-systems-suppliers"
+  },
+  {
+   "image": "/qa/media/untitled-design-1.webp",
+   "title": "Pipe to Pipe Connector",
+   "excerpt": "Discover the equal pipe to pipe connector for reliable compressed air piping. Learn its uses, benefits and selection tips for industrial applications.",
+   "to": "/blog/pipe-to-pipe-connector"
+  },
+  {
+   "image": "/qa/media/calculate-compressed.jpg",
+   "title": "Compressed Air Flow",
+   "excerpt": "Learn how to calculate compressed air flow using simple formulas, worked examples, and unit conversions (CFM, m³/min, L/s) so you can size compressors, pipes, and tools correctly.",
+   "to": "/blog/compressed-air-flow-calculation"
+  },
+  {
+   "image": "/qa/media/psi-vs-cfm-1.webp",
+   "title": "CFM vs PSI Explained",
+   "excerpt": "If you've ever shopped for an air compressor, a fan, a vacuum, or a dust collector, you've seen both CFM and PSI on the spec sheet. They're often mixed up, but they measure two completely different things.",
+   "to": "/blog/cfm-vs-psi-explaination"
+  },
+  {
+   "image": "/qa/media/compressed-air-pipe-size-chart.webp",
+   "title": "Air Pipe Size Chart",
+   "excerpt": "This guide gives you a compressed air pipe size chart you can use straight away. It matches airflow (CFM), pipe length, and pipe diameter. It also explains how the chart works the complete guide .",
+   "to": "/blog/compressed-air-pipe-size-chart-2"
+  },
+  {
+   "image": "/qa/media/aluminium-compressed-air-piping-system.jpg",
+   "title": "PVC For Compressed air",
+   "excerpt": "PVC pipe for compressed air discusses the safety concerns and limitations of using conventional PVC pipes in pressurized air systems. extremely dangerous and strongly discouraged by safety organizations, manufacturers, and industry standards.",
+   "to": "/blog/pvc-pipe-for-compressed-air"
+  },
+  {
+   "image": "/qa/media/blue-compressed-air-pipeline-and-gauge.webp",
+   "title": "Air Pressure Drop",
+   "excerpt": "Compressed air is an essential utility in modern industrial facilities. It powers pneumatic tools, automated production lines, packaging machines, assembly equipment, and a wide range of manufacturing processes.",
+   "to": "/blog/compressed-air-pressure-drop"
+  },
+  {
+   "image": "/qa/media/blue-compressed-air-system-in-plant-room.webp",
+   "title": "Air Receiver Tank",
+   "excerpt": "In this guide, it explains what an air receiver tank is, how it works, how to estimate the required capacity, its main benefits, and the installation practices that help support a safe and efficient compressed air system",
+   "to": "/blog/compressed-air-receiver-tank"
+  },
+  {
+   "image": "/qa/media/compressed-air-line-modular-aluminium-piping-1000x1000-1.webp",
+   "title": "Compressed Air Audit",
+   "excerpt": "A compressed air audit helps identify these hidden inefficiencies, reduce unnecessary operating costs, and improve the performance of your compressed air system. air leaks are a common source of energy waste in industrial facilities",
+   "to": "/blog/compressed-air-audit"
+  },
+  {
+   "image": "/qa/media/aluminium-compressed-air-piping-system-300x196-1.jpg",
+   "title": "PVC vs Aluminium Pipe",
+   "excerpt": "Unlike conventional PVC plumbing pipes, industrial aluminium air piping systems are specifically manufactured for compressed air applications. They use modular push-fit or press-fit connections that make installation, maintenance.",
+   "to": "/blog/pvc-vs-aluminium-compressed-air-pipe"
+  }
+ ]
+}

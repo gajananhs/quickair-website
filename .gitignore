@@ -1,0 +1,24 @@
+node_modules
+dist
+.vite
+*.local
+.DS_Store
+
+# Backups and archives (old Canares project and theme ZIPs)
+backups/
+*.zip
+
+# Local editor/agent settings
+.claude/settings.local.json
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Temporary files
+*.log
+*.tmp
+npm-debug.log*

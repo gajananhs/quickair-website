@@ -1,0 +1,437 @@
+@import 'tailwindcss';
+@import 'lenis/dist/lenis.css';
+
+/* motion-off:… applies when animations are disabled */
+@custom-variant motion-off (html:not(.motion-ok) &);
+
+/* ==========================================================================
+   QUICK AIR DESIGN SYSTEM — single source of truth for tokens.
+   Tailwind v4 reads everything inside @theme and generates utilities
+   (bg-navy-900, text-electric-400, font-display, ease-out-expo, ...).
+   Never hard-code hex values in components; add a token here instead.
+   ========================================================================== */
+
+@theme {
+  /* --- Colour: deep navy (surfaces) --- */
+  --color-navy-950: #031219;
+  --color-navy-900: #051b26; /* default dark surface */
+  --color-navy-800: #07283a; /* alternate dark surface */
+  --color-navy-700: #0b3a52;
+  --color-navy-600: #125673;
+
+  /* --- Colour: electric blue (accent, interaction, glow) --- */
+  --color-electric-300: #8fd6ee;
+  --color-electric-400: #35b2de;
+  --color-electric-500: #0b8fc2; /* primary action: brightened logo blue */
+  --color-electric-600: #007098; /* Quick Air logo blue (exact) */
+  --color-electric-700: #00566f;
+
+  /* --- Colour: cyan (secondary accent, light trails, data highlights) --- */
+  --color-cyan-300: #9be7fb;
+  --color-cyan-400: #2ccbf2; /* air/flow accent on dark surfaces */
+  --color-cyan-500: #10a6cf;
+
+  /* --- Colour: Quickair pipe blue (RAL 5012, product identity) --- */
+  --color-pipe-500: #2f86c4;
+
+  /* --- Colour: aluminium (metallic neutrals) --- */
+  --color-alu-50: #f3f7f9;
+  --color-alu-100: #e8eff3;
+  --color-alu-200: #dbe0e7;
+  --color-alu-300: #c3cad4;
+  --color-alu-400: #a3acb9;
+  --color-alu-500: #7b8798;
+  --color-alu-600: #5d7280;
+  --color-alu-700: #49525f;
+  --color-alu-800: #2f3640;
+
+  /* --- Typography --- */
+  --font-display: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* Fluid type scale (min @ 360px → max @ 1440px) */
+  --text-display: clamp(2.75rem, 1.6rem + 5.2vw, 6rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.035em;
+  --text-h1: clamp(2.25rem, 1.5rem + 3.4vw, 4.25rem);
+  --text-h1--line-height: 1.06;
+  --text-h1--letter-spacing: -0.03em;
+  --text-h2: clamp(1.875rem, 1.4rem + 2.1vw, 3.125rem);
+  --text-h2--line-height: 1.1;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h3: clamp(1.375rem, 1.2rem + 0.8vw, 1.875rem);
+  --text-h3--line-height: 1.2;
+  --text-h3--letter-spacing: -0.015em;
+  --text-lead: clamp(1.0625rem, 1rem + 0.4vw, 1.3125rem);
+  --text-lead--line-height: 1.6;
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1;
+  --text-eyebrow--letter-spacing: 0.18em;
+
+  /* --- Radius --- */
+  --radius-card: 1.25rem;
+  --radius-panel: 2rem;
+
+  /* --- Shadow / glow --- */
+  --shadow-glow: 0 0 0 1px rgb(11 143 194 / 0.45), 0 8px 40px -8px rgb(44 203 242 / 0.4);
+  --shadow-card: 0 1px 0 0 rgb(255 255 255 / 0.06) inset, 0 24px 60px -30px rgb(0 0 0 / 0.7);
+  --shadow-card-light: 0 1px 2px rgb(10 20 40 / 0.06), 0 20px 50px -28px rgb(10 20 40 / 0.25);
+
+  /* --- Motion (mirrored in src/lib/motion.js for GSAP) --- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* --- Layout --- */
+  --container-site: 82rem;
+  --spacing-header: 4.5rem;
+}
+
+/* Non-utility tokens */
+:root {
+  --gutter: clamp(1.25rem, 4vw, 3rem);
+  --section-y: clamp(4.5rem, 10vw, 9rem);
+
+  /* Brushed aluminium gradients */
+  --gradient-alu: linear-gradient(
+    135deg,
+    #f6f8fa 0%,
+    #c3cad4 22%,
+    #eceff3 45%,
+    #a3acb9 68%,
+    #dbe0e7 100%
+  );
+  --gradient-alu-text: linear-gradient(180deg, #ffffff 0%, #c9d8e0 55%, #7f97a5 100%);
+  --gradient-electric: linear-gradient(100deg, #2ccbf2 0%, #0b8fc2 55%, #007098 100%);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scrollbar-color: var(--color-navy-600) var(--color-navy-950);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-navy-900);
+    color: var(--color-alu-100);
+    line-height: 1.6;
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: var(--color-electric-500);
+    color: white;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-electric-400);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  button,
+  [role='button'] {
+    cursor: pointer;
+  }
+}
+
+/* ==========================================================================
+   Custom utilities (use like any Tailwind class, variants supported)
+   ========================================================================== */
+
+/* Metallic aluminium headline text */
+@utility text-metal {
+  background: var(--gradient-alu-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Electric blue gradient text for emphasis words */
+@utility text-electric-gradient {
+  background: var(--gradient-electric);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Brushed aluminium surface */
+@utility bg-brushed {
+  background: var(--gradient-alu);
+}
+
+/* Frosted glass panel on dark surfaces */
+@utility glass {
+  background: rgb(15 31 61 / 0.55);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+
+/* Engineering blueprint grid backdrop */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(44 203 242 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(44 203 242 / 0.07) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Soft electric radial glow, place on an absolutely positioned element */
+@utility bg-glow {
+  background: radial-gradient(closest-side, rgb(11 143 194 / 0.34), transparent);
+}
+
+/* Hairline border that reads on both themes */
+@utility hairline {
+  border-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* ==========================================================================
+   Section themes — set by <Section theme="...">, consumed by children
+   through the semantic variables below so components stay theme-agnostic.
+   ========================================================================== */
+
+.theme-dark {
+  --surface: var(--color-navy-900);
+  --surface-raised: var(--color-navy-800);
+  --fg: var(--color-alu-50);
+  --fg-muted: var(--color-alu-400);
+  --line: rgb(255 255 255 / 0.1);
+  --accent: var(--color-electric-400);
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.theme-navy {
+  --surface: var(--color-navy-800);
+  --surface-raised: var(--color-navy-700);
+  --fg: var(--color-alu-50);
+  --fg-muted: var(--color-alu-400);
+  --line: rgb(255 255 255 / 0.1);
+  --accent: var(--color-electric-400);
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.theme-light {
+  --surface: #ffffff;
+  --surface-raised: var(--color-alu-50);
+  --fg: var(--color-navy-900);
+  --fg-muted: var(--color-alu-600);
+  --line: rgb(10 20 40 / 0.1);
+  --accent: var(--color-electric-600);
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.theme-alu {
+  --surface: var(--color-alu-50);
+  --surface-raised: #ffffff;
+  --fg: var(--color-navy-900);
+  --fg-muted: var(--color-alu-600);
+  --line: rgb(10 20 40 / 0.1);
+  --accent: var(--color-electric-600);
+  background: var(--surface);
+  color: var(--fg);
+}
+
+/* ==========================================================================
+   Motion safety
+   ========================================================================== */
+
+/* Elements GSAP will reveal start hidden only when JS + motion are available */
+html.motion-ok [data-reveal] {
+  visibility: hidden;
+}
+
+/* Motion is off when <html> lacks .motion-ok (set in main.jsx from the OS
+   preference or the ?motion= override). CSS animation is stilled to match. */
+html:not(.motion-ok) *,
+html:not(.motion-ok) *::before,
+html:not(.motion-ok) *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* The 3D scroll story always animates (see allow3DMotion in lib/motion.js),
+   so its caption cross-fade keeps its timing too. */
+html:not(.motion-ok) .motion-3d-caption {
+  transition-duration: 700ms !important;
+}
+
+/* ==========================================================================
+   Added in the full rebuild
+   ========================================================================== */
+
+/* Split-text headline: <SplitText> wraps each word in .split-word > span */
+.split-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.split-word > span {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Thin luminous divider */
+@utility rule-glow {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(44 203 242 / 0.6), transparent);
+}
+
+/* Logo marquee */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@utility animate-marquee {
+  animation: marquee 45s linear infinite;
+}
+
+/* Air flowing through the pipe (comparison graphic) */
+@keyframes flow {
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+@utility animate-flow {
+  animation: flow 1s linear infinite;
+}
+
+/* Scroll cue */
+@keyframes cue {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(200%);
+  }
+}
+@utility animate-cue {
+  animation: cue 1.8s var(--ease-in-out-smooth) infinite;
+}
+
+/* Page transition: opacity only, a transform here would break pinned (fixed) sections */
+.page-enter {
+  animation: page-in 0.7s var(--ease-out-expo) both;
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Long-form article typography */
+.prose-article > * + * {
+  margin-top: 1.25em;
+}
+.prose-article h2 {
+  font-size: var(--text-h3);
+  line-height: 1.2;
+  margin-top: 2.2em;
+}
+.prose-article h3 {
+  font-size: 1.25rem;
+  margin-top: 1.8em;
+}
+.prose-article h4 {
+  font-size: 1.0625rem;
+  margin-top: 1.5em;
+}
+.prose-article ul {
+  display: grid;
+  gap: 0.6em;
+  padding-left: 1.25em;
+  list-style: disc;
+}
+.prose-article li::marker {
+  color: var(--accent);
+}
+.prose-article a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ==========================================================================
+   Quick Air additions
+   ========================================================================== */
+
+/* Slow drifting air streaks behind dark heroes */
+@keyframes drift {
+  from {
+    transform: translate3d(-12%, 0, 0);
+  }
+  to {
+    transform: translate3d(12%, 0, 0);
+  }
+}
+@utility animate-drift {
+  animation: drift 14s ease-in-out infinite alternate;
+}
+
+/* Soft pulse for diagram hotspots */
+@keyframes ping-soft {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@utility animate-ping-soft {
+  animation: ping-soft 2s ease-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Tables inside articles */
+.prose-article table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+.prose-article th,
+.prose-article td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.75rem 1rem 0.75rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-article th {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--accent);
+}
