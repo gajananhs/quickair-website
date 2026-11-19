@@ -8,11 +8,14 @@ import AssemblyCanvas from '@/components/three/AssemblyCanvas'
  * Product page for each part of the 3D assembly (part names come from
  * createAssemblyScene). The model is a push-fit aluminium-to-aluminium line:
  * blue aluminium pipe with aluminium fittings; its valve is a 3-piece manual
- * ball valve.
+ * ball valve, and its support clamps and brackets are aluminium accessories.
+ * There are no pages for single fittings, so the pipe and the fittings open
+ * the push-fit aluminium page that covers them.
  */
 const PIPING = 'push-fit-aluminium-to-aluminium'
 const PART_PRODUCTS = {
   'Valves and actuators': 'protork-a300-m300-ball-valves',
+  'Clamps and brackets': 'aluminium-extrusions',
 }
 const productHref = (name) => `${ROUTES.products}/${PART_PRODUCTS[name] ?? PIPING}`
 
@@ -67,6 +70,9 @@ export default function HeroAssembly() {
     if (!tip?.touch) return
     const away = (e) => {
       if (wrapRef.current?.contains(e.target)) return
+      // page content overlaps the model, so also go by where the tap landed
+      const r = wrapRef.current?.getBoundingClientRect()
+      if (r && e.clientX >= r.left && e.clientX < r.right && e.clientY >= r.top && e.clientY < r.bottom && !e.target.closest?.('a, button, input, select, textarea, label, [role="button"]')) return
       canvasRef.current?.clearHover()
       show(null)
     }

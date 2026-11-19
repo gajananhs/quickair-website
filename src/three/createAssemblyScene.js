@@ -367,6 +367,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
   let glowing = false
   let updateLinks = null
   let clearTouch = null
+  let removeLinks = null
 
   const apply = (p, time) => {
     const explode = explore ? explodeShown : smooth(0.5, 0.64, p) * (1 - smooth(0.74, 0.9, p))
@@ -441,8 +442,8 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
     pointer.sx += (pointer.x - pointer.sx) * ease
     pointer.sy += (pointer.y - pointer.sy) * ease
     apply(shown, time)
-    updateLinks?.()
     renderer.render(scene, camera)
+    updateLinks?.()
     frame = requestAnimationFrame(render)
   }
   const start = () => {
@@ -456,8 +457,8 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
   }
   const renderOnce = () => {
     apply(progress, 0)
-    updateLinks?.()
     renderer.render(scene, camera)
+    updateLinks?.()
   }
 
   const onPointerMove = (e) => {
@@ -512,12 +513,23 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
   // --- links mode: hover or tap a part to identify it, click it to open its product page ---
   if (links) {
     const el = renderer.domElement
+    const root = document.documentElement
     const raycaster = new THREE.Raycaster()
     const ndc = new THREE.Vector2()
     const anchor = V(0, 0, 0)
-    let mouse = null // last mouse position over the canvas
+    let mouse = null // last mouse position over the model
     let anchored = null // last part shown, so its label keeps following it
     let down = null
+    // The canvas sits behind page content (the hero copy's boxes overlap it), so
+    // it does not receive every event over the model. Pointer events are read on
+    // the window instead: one counts when it is inside the canvas and not on a
+    // link, button or field (those, including the part label, keep their own).
+    const INTERACTIVE = 'a, button, input, select, textarea, label, [role="button"]'
+    const overModel = (e) => {
+      const rect = el.getBoundingClientRect()
+      if (e.clientX < rect.left || e.clientX >= rect.right || e.clientY < rect.top || e.clientY >= rect.bottom) return false
+      return e.target === el || !(e.target instanceof Element && e.target.closest(INTERACTIVE))
+    }
     const partAt = (x, y) => {
       const rect = el.getBoundingClientRect()
       ndc.set(((x - rect.left) / rect.width) * 2 - 1, -((y - rect.top) / rect.height) * 2 + 1)
@@ -528,10 +540,12 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
       if (p === hovered) return
       hovered = p
       if (p) anchored = p
-      el.style.cursor = p ? 'pointer' : ''
+      // on the root too, so the pointer cursor also shows where page content overlaps the model
+      el.style.cursor = root.style.cursor = p ? 'pointer' : ''
       onHover?.(p ? { id: p.index, name: p.name, kind: p.kind } : null)
       if (!frame) renderOnce()
     }
+    // runs after each render, so picking and the label use the frame on screen
     updateLinks = () => {
       // the model keeps turning under a still cursor, so re-check what is under it
       if (mouse && animate) setHovered(partAt(mouse.x, mouse.y))
@@ -539,27 +553,44 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
       anchored.group.getWorldPosition(anchor).project(camera)
       onAnchor(((anchor.x + 1) / 2) * el.clientWidth, ((1 - anchor.y) / 2) * el.clientHeight)
     }
-    el.addEventListener('pointermove', (e) => {
+    const onMove = (e) => {
       if (e.pointerType !== 'mouse') return
+      if (!overModel(e)) {
+        mouse = null
+        return setHovered(null)
+      }
       mouse = { x: e.clientX, y: e.clientY }
       setHovered(partAt(e.clientX, e.clientY))
-    })
-    el.addEventListener('pointerleave', (e) => {
+    }
+    const onLeave = (e) => {
       if (e.pointerType !== 'mouse') return
       mouse = null
       setHovered(null)
-    })
-    el.addEventListener('pointerdown', (e) => (down = { x: e.clientX, y: e.clientY }))
-    el.addEventListener('pointercancel', () => (down = null))
-    el.addEventListener('pointerup', (e) => {
-      // a click or tap, not a scroll or drag
-      if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) return (down = null)
+    }
+    const onDown = (e) => (down = overModel(e) ? { x: e.clientX, y: e.clientY } : null)
+    const onCancel = () => (down = null)
+    const onUp = (e) => {
+      // a click or tap on the model, not a scroll or drag
+      if (!down || !overModel(e) || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) return (down = null)
       down = null
       const p = partAt(e.clientX, e.clientY)
       onPick?.(p ? { id: p.index, name: p.name, kind: p.kind } : null, e.pointerType)
       if (e.pointerType !== 'mouse') setHovered(p) // touch: a tap shows the label
-    })
+    }
+    window.addEventListener('pointermove', onMove, { passive: true })
+    root.addEventListener('pointerleave', onLeave)
+    window.addEventListener('pointerdown', onDown, { passive: true })
+    window.addEventListener('pointercancel', onCancel, { passive: true })
+    window.addEventListener('pointerup', onUp)
     clearTouch = () => setHovered(null)
+    removeLinks = () => {
+      window.removeEventListener('pointermove', onMove)
+      root.removeEventListener('pointerleave', onLeave)
+      window.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('pointercancel', onCancel)
+      window.removeEventListener('pointerup', onUp)
+      if (hovered) root.style.cursor = ''
+    }
   }
 
   const resize = () => {
@@ -600,6 +631,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
       disposed = true
       stop()
       window.removeEventListener('pointermove', onPointerMove)
+      removeLinks?.()
       resizeObserver.disconnect()
       intersectionObserver.disconnect()
       disposables.forEach((d) => d.dispose())
