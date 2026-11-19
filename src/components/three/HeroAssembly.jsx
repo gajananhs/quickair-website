@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ZoomIn } from 'lucide-react'
 import { ROUTES } from '@/data/navigation'
 import { cn } from '@/lib/cn'
 import AssemblyCanvas from '@/components/three/AssemblyCanvas'
@@ -22,7 +23,8 @@ const productHref = (name) => `${ROUTES.products}/${PART_PRODUCTS[name] ?? PIPIN
 /**
  * Homepage hero assembly: same idle presentation, plus the part label from the
  * All Products explorer. Hover (or tap) a part to see its name, click it (or
- * tap it again, or tap the label) to open its product page.
+ * tap it again, or tap the label) to open its product page. Zooming in over
+ * the model pulls it apart into its components (the scene handles that).
  * Always import lazily, like AssemblyCanvas.
  */
 export default function HeroAssembly() {
@@ -85,6 +87,18 @@ export default function HeroAssembly() {
   return (
     <div ref={wrapRef} className="relative h-full w-full">
       <AssemblyCanvas ref={canvasRef} idle links onHover={onHover} onPick={onPick} onAnchor={onAnchor} />
+
+      {/* zoom cue: sits above the model, clear of its parts, and never takes pointer events */}
+      <div className="pointer-events-none absolute top-2 right-(--gutter) flex max-w-[calc(100%-2*var(--gutter))] items-center gap-3 lg:top-[calc(var(--spacing-header)+1.75rem)] lg:flex-row-reverse lg:text-right">
+        <span className="relative grid size-10 shrink-0 place-items-center rounded-full border border-cyan-400/50 bg-navy-900/70 text-cyan-400 shadow-glow backdrop-blur lg:size-11">
+          <span aria-hidden="true" className="animate-ping-soft absolute inset-0 rounded-full border border-cyan-400/60 motion-reduce:hidden" />
+          <ZoomIn className="size-4.5" aria-hidden="true" />
+        </span>
+        <p className="flex flex-col gap-0.5">
+          <span className="font-display text-xs font-semibold tracking-[0.22em] text-cyan-400 uppercase">Zoom in to explore</span>
+          <span className="max-w-64 text-xs leading-snug text-alu-400 max-sm:hidden">Get closer. Discover how every component comes together.</span>
+        </p>
+      </div>
 
       {/* part label, same look as the All Products explorer; links to the product */}
       <Link
