@@ -2,7 +2,8 @@ name: Deploy to Hostinger
 
 # Manual only: run it from the Actions tab ("Run workflow").
 # Needs repository secrets FTP_SERVER, FTP_USERNAME and FTP_PASSWORD
-# (hPanel -> Files -> FTP Accounts).
+# (hPanel -> Files -> FTP Accounts) and ANTHROPIC_API_KEY (the Claude API key
+# the "Talk to Quickair Assistant" button uses). The server must run PHP 8.1+.
 on:
   workflow_dispatch:
     inputs:
@@ -25,7 +26,21 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Install the talk button's PHP libraries
+        working-directory: public/api/private
+        run: |
+          composer install --no-dev --no-interaction --classmap-authoritative
+          rm -rf vendor/anthropic-ai/sdk/{tests,examples,scripts,fixtures}
       - run: npm run build
+      - name: Give the talk button its API key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::Add the repository secret ANTHROPIC_API_KEY, then run this workflow again."
+            exit 1
+          fi
+          php -r 'file_put_contents("dist/api/private/config.php", "<?php return " . var_export(["anthropic_api_key" => getenv("ANTHROPIC_API_KEY")], true) . ";\n");'
       - name: Upload dist/ to Hostinger
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:

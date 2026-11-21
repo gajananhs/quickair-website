@@ -10,8 +10,8 @@ The original Canares project (including its WordPress theme) is preserved untouc
 
 ## 1. Ground rules
 
-- All work stays in this local folder. No GitHub, no deployment, no cloud environments.
-- Static site only: no backend, database, authentication, WordPress or PHP. The enquiry form opens WhatsApp with a pre-filled message.
+- The code lives in the `quickair-website` GitHub repository. Deployment to Hostinger is the manual workflow `.github/workflows/deploy.yml`; nothing deploys on push.
+- Static site, with one exception: the "Talk to Quickair Assistant" button (`src/components/assistant/`) talks to a small PHP endpoint, `public/api/assistant.php`, which calls the Claude API and mails the lead to the sales team (see `docs/voice-assistant/`). No database, authentication or WordPress. The enquiry form opens WhatsApp with a pre-filled message.
 - **Content is original Quick Air content.** Take wording from the data files listed in CONTENT_INVENTORY.md. Do not invent company facts. If something is missing on quickair.in, leave it out and record it in MISSING_CONTENT_REPORT.md.
 - The legal entity (Canares Automation Pvt. Ltd.), its address and its @canares.com e-mail addresses stay, because quickair.in publishes them.
 - JavaScript (no TypeScript). React function components only.

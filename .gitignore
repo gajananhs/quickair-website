@@ -22,3 +22,8 @@ backups/
 *.log
 *.tmp
 npm-debug.log*
+
+# Talk-button backend: PHP libraries are installed at deploy time, the API key is written at deploy time
+public/api/private/vendor/
+public/api/private/config.php
+public/api/private/data/

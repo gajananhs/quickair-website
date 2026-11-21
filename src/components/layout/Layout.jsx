@@ -5,8 +5,9 @@ import SmoothScrollProvider from '@/providers/SmoothScrollProvider'
 import { company } from '@/data/company'
 import Navbar from './Navbar'
 import Footer from './Footer'
+import VoiceAssistant from '@/components/assistant/VoiceAssistant'
 
-/** App shell shared by every route: smooth scroll, navbar, page transition, footer, WhatsApp button. */
+/** App shell shared by every route: smooth scroll, navbar, page transition, footer, talk-to-assistant button, WhatsApp button. */
 export default function Layout() {
   const { pathname } = useLocation()
 
@@ -26,6 +27,7 @@ export default function Layout() {
         </Suspense>
       </main>
       <Footer />
+      <VoiceAssistant />
       <a
         href={company.whatsapp}
         target="_blank"
