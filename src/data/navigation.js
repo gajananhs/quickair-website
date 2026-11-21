@@ -18,6 +18,7 @@ export const ROUTES = {
 
 /** Mirrors the Quick Air menu (Home, About, Products, Calculator, Dealer-Registration, Gallery, Blog, Contact). */
 export const mainNav = [
+  { label: 'Home', to: ROUTES.home },
   { label: 'About', to: ROUTES.about },
   {
     label: 'Products',

@@ -17,28 +17,28 @@ import Tilt from '@/components/motion/Tilt'
 
 const THEMES = { aluminium: 'light', pex: 'alu', extrusions: 'light', valves: 'alu' }
 
-/** Product with a photo and key figures (piping systems). */
-function SystemCard({ product }) {
+/** Product with a photo and key figures (piping systems). `wide`: photo beside the details (a category's only card). */
+function SystemCard({ product, wide = false }) {
   return (
-    <Tilt as="article" className="flex flex-col overflow-hidden rounded-panel bg-white shadow-card-light">
-      <Link to={`/products/${product.slug}`} className="group grid aspect-[4/3] place-items-center overflow-hidden bg-alu-50 p-8">
-        <img src={product.image.src} alt={product.image.alt} loading="lazy" className="max-h-full object-contain transition-transform duration-700 ease-out-expo group-hover:scale-110" />
+    <Tilt as="article" className={cn('flex flex-col overflow-hidden rounded-card bg-white shadow-card-light', wide && 'md:grid md:grid-cols-[2fr_3fr]')}>
+      <Link to={`/products/${product.slug}`} className={cn('group relative aspect-[16/10] overflow-hidden border-b border-(--line) bg-white', wide && 'md:aspect-auto md:border-r md:border-b-0')}>
+        <img src={product.image.src} alt={product.image.alt} loading="lazy" className="absolute inset-0 size-full object-contain p-5 transition-transform duration-700 ease-out-expo group-hover:scale-105" />
       </Link>
-      <div className="flex flex-1 flex-col p-7">
+      <div className="flex flex-1 flex-col p-5 lg:p-6">
         <span className="font-display text-eyebrow font-semibold uppercase text-(--accent)">{product.tag}</span>
-        <h3 className="mt-2 text-h3">
+        <h3 className="mt-2 font-display text-xl leading-tight font-semibold tracking-tight">
           <Link to={`/products/${product.slug}`} className="transition-colors hover:text-(--accent)">{product.name}</Link>
         </h3>
-        <p className="text-(--fg-muted)">{product.variant}</p>
-        <dl className="mt-5 grid grid-cols-2 gap-x-6 border-t border-(--line)">
+        <p className="mt-1 text-sm text-(--fg-muted)">{product.variant}</p>
+        <dl className="mt-4 grid grid-cols-2 gap-x-5 border-t border-(--line)">
           {product.key.map(([label, value]) => (
-            <div key={label} className="border-b border-(--line) py-3">
+            <div key={label} className="border-b border-(--line) py-2.5">
               <dt className="text-xs text-(--fg-muted)">{label}</dt>
-              <dd className="font-display font-semibold">{value}</dd>
+              <dd className="mt-0.5 font-display text-sm font-semibold">{value}</dd>
             </div>
           ))}
         </dl>
-        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+        <div className="mt-auto flex flex-wrap gap-x-6 pt-3">
           <Link to={`/products/${product.slug}`} className="group/l inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-(--accent)">
             Full specifications <ArrowRight className="size-4 transition-transform duration-300 ease-out-expo group-hover/l:translate-x-1" aria-hidden="true" />
           </Link>
@@ -54,13 +54,13 @@ function SystemCard({ product }) {
 /** Product described by a feature list (extrusions, ESD, valves). */
 function FeatureRow({ product, index }) {
   return (
-    <Reveal as="article" className="group grid gap-6 border-b border-(--line) py-9 md:grid-cols-[1fr_1.4fr] md:gap-12">
+    <Reveal as="article" className="group grid gap-4 border-b border-(--line) py-6 md:grid-cols-[1fr_1.7fr] md:gap-10 lg:py-7">
       <div>
-        <span className="font-mono text-sm text-(--accent)">{String(index + 1).padStart(2, '0')}</span>
-        <h3 className="mt-2 text-h3">
+        <span className="font-mono text-xs text-(--accent)">{String(index + 1).padStart(2, '0')}</span>
+        <h3 className="mt-1.5 max-w-sm font-display text-xl leading-tight font-semibold tracking-tight">
           <Link to={`/products/${product.slug}`} className="transition-colors hover:text-(--accent)">{product.name}</Link>
         </h3>
-        <div className="mt-5 flex flex-wrap gap-x-6 gap-y-1">
+        <div className="mt-2 flex flex-wrap gap-x-6">
           <Link to={`/contact?product=${encodeURIComponent(product.name)}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-(--accent)">
             Enquire now <ArrowRight className="size-4 transition-transform duration-300 ease-out-expo group-hover:translate-x-1" aria-hidden="true" />
           </Link>
@@ -69,9 +69,9 @@ function FeatureRow({ product, index }) {
           </a>
         </div>
       </div>
-      <ul className="grid gap-x-10 sm:grid-cols-2">
+      <ul className="grid content-start gap-x-8 sm:grid-cols-2">
         {product.features.map((feature) => (
-          <li key={feature} className="border-t border-(--line) py-3 text-sm first:border-t-0 sm:[&:nth-child(2)]:border-t-0">{feature}</li>
+          <li key={feature} className="border-t border-(--line) py-2.5 text-sm leading-snug first:border-t-0 sm:[&:nth-child(2)]:border-t-0">{feature}</li>
         ))}
       </ul>
     </Reveal>
@@ -151,26 +151,26 @@ export default function Products() {
           const systems = items.filter((p) => p.specs)
           const featured = items.filter((p) => p.features)
           return (
-            <Section key={group.id} id={group.id} theme={THEMES[group.id]} className="scroll-mt-32">
+            <Section key={group.id} id={group.id} theme={THEMES[group.id]} flush className="scroll-mt-32 py-14 md:py-16 lg:py-20">
               <div className="max-w-3xl">
                 <Eyebrow>{group.eyebrow}</Eyebrow>
-                <h2 className="mt-5 text-h2">{group.title}</h2>
-                <p className="mt-4 text-lead text-(--fg-muted)">{group.lead}</p>
+                <h2 className="mt-3 font-display text-[clamp(1.625rem,1.2rem+1.3vw,2.375rem)] leading-tight font-semibold tracking-tight">{group.title}</h2>
+                <p className="mt-3 max-w-2xl text-base text-(--fg-muted) lg:text-[1.0625rem]">{group.lead}</p>
               </div>
               {systems.length > 0 && (
-                <div className={cn('mt-12 grid gap-6', systems.length > 1 ? 'md:grid-cols-2 xl:grid-cols-3' : 'max-w-xl')}>
-                  {systems.map((product) => <SystemCard key={product.slug} product={product} />)}
+                <div className={cn('mt-8 grid gap-5 lg:mt-10', systems.length > 1 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'max-w-3xl')}>
+                  {systems.map((product) => <SystemCard key={product.slug} product={product} wide={systems.length === 1} />)}
                 </div>
               )}
               {group.id === 'aluminium' && (
-                <div className="mt-20">
-                  <h3 className="text-h3">Inside a push-fit joint</h3>
-                  <p className="mt-2 text-(--fg-muted)">Hover the numbered points to see what each part is made of.</p>
-                  <JointDiagram type="push-fit" className="mt-8" />
+                <div className="mt-12 border-t border-(--line) pt-10 lg:mt-14">
+                  <h3 className="font-display text-xl leading-tight font-semibold tracking-tight">Inside a push-fit joint</h3>
+                  <p className="mt-1.5 text-sm text-(--fg-muted)">Hover the numbered points to see what each part is made of.</p>
+                  <JointDiagram type="push-fit" className="mt-6" />
                 </div>
               )}
               {featured.length > 0 && (
-                <div className="mt-8 border-t border-(--line)">
+                <div className="mt-8 border-t border-(--line) lg:mt-10">
                   {featured.map((product, i) => <FeatureRow key={product.slug} product={product} index={i} />)}
                 </div>
               )}

@@ -18,6 +18,14 @@
  * drag to rotate, hover a part to highlight it (onHover receives its name),
  * and setExplode(0..1) pulls the parts apart.
  *
+ * With `links: true` (hero use) the presentation is unchanged, but parts can be
+ * hovered or tapped: the part glows as in explore mode, onHover receives it,
+ * onAnchor(x, y) reports its on-screen position every frame (so a label can
+ * follow it while the model rotates) and onPick(part, pointerType) fires on a
+ * click or tap. Zooming in over the model (mouse wheel, trackpad pinch or a
+ * two-finger pinch) pulls the parts apart with the same exploded view, and
+ * zooming out puts them back.
+ *
  * createAssemblyScene(container, options) → { setProgress, setExplode, dispose }
  */
 import * as THREE from 'three'
@@ -32,7 +40,7 @@ const smooth = (a, b, x) => {
 }
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3)
 
-export function createAssemblyScene(container, { idle = false, animate = true, interactive = true, shift = false, explore = false, onHover = null } = {}) {
+export function createAssemblyScene(container, { idle = false, animate = true, interactive = true, shift = false, explore = false, links = false, onHover = null, onPick = null, onAnchor = null } = {}) {
   const lowPower = window.innerWidth < 768 || (navigator.hardwareConcurrency ?? 8) <= 4
   const SEG = lowPower ? 20 : 40
 
@@ -96,6 +104,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
   scene.add(assembly)
   const parts = []
   const CENTER = V(0, 0.15, 0)
+  const LINK_ZOOM = 1.8 // links mode: camera eases back a little at full zoom so the spread parts stay in frame
 
   /** Cylinder between two points (local to parent). */
   const rod = (parent, a, b, radius, material, geometry = cylGeo) => {
@@ -318,7 +327,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
     p.name = NAMES.get(p) ?? (p.kind === 'pipe' ? 'Aluminium modular piping' : 'Clamps and brackets')
     p.group.traverse((o) => { o.userData.part = p })
   }
-  if (explore) {
+  if (explore || links) {
     // every pipe gets its own material so it can glow when hovered
     for (const p of parts) {
       if (p.kind !== 'pipe') continue
@@ -357,9 +366,14 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
   let spin = 0
   let manualExplode = 0
   let explodeShown = 0
+  // links mode
+  let glowing = false
+  let updateLinks = null
+  let clearTouch = null
+  let removeLinks = null
 
   const apply = (p, time) => {
-    const explode = explore ? explodeShown : smooth(0.5, 0.64, p) * (1 - smooth(0.74, 0.9, p))
+    const explode = explore || links ? explodeShown : smooth(0.5, 0.64, p) * (1 - smooth(0.74, 0.9, p))
     const select = explore ? 0 : smooth(0.34, 0.47, p) * (1 - smooth(0.74, 0.9, p))
 
     for (const part of parts) {
@@ -381,6 +395,15 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
         const m = part.body ?? part.glow
         if (m) m.emissiveIntensity += ((part === hovered ? 0.9 : 0) - m.emissiveIntensity) * 0.25
       }
+    } else if (links && (hovered || glowing)) {
+      glowing = false
+      for (const part of parts) {
+        const m = part.body ?? part.glow
+        if (!m) continue
+        const target = part === hovered ? 0.9 : 0
+        m.emissiveIntensity = animate ? m.emissiveIntensity + (target - m.emissiveIntensity) * 0.25 : target
+        if (m.emissiveIntensity > 0.001) glowing = true
+      }
     } else {
       const sweep = (p - 0.14) / 0.2
       fittings.forEach((f, i) => {
@@ -396,7 +419,8 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
     const elevation = 0.3 + Math.sin(p * Math.PI) * 0.22 + (explore ? userEl : idle ? pointer.sy * 0.12 : 0)
     const zoomIn = smooth(0.14, 0.3, p) * (1 - smooth(0.44, 0.56, p))
     const zoomOut = explode
-    let radius = 16.5 - zoomIn * 1.9 + zoomOut * 3.2
+    // links: the exploded view fills the stage, so the camera pulls back less than in explore mode
+    let radius = 16.5 - zoomIn * 1.9 + zoomOut * (links ? LINK_ZOOM : 3.2)
     if (aspect < 1.15) radius *= Math.min(2.1, 1.15 / aspect) // keep the run in frame on tall screens
     else if (shift && container.clientWidth < 1024) radius *= 1.25 // room for captions below the model
     camera.position.set(
@@ -423,6 +447,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
     pointer.sy += (pointer.y - pointer.sy) * ease
     apply(shown, time)
     renderer.render(scene, camera)
+    updateLinks?.()
     frame = requestAnimationFrame(render)
   }
   const start = () => {
@@ -437,6 +462,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
   const renderOnce = () => {
     apply(progress, 0)
     renderer.render(scene, camera)
+    updateLinks?.()
   }
 
   const onPointerMove = (e) => {
@@ -488,6 +514,156 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
     el.addEventListener('pointerleave', release)
   }
 
+  // --- links mode: hover or tap a part to identify it, click it to open its product page ---
+  if (links) {
+    const el = renderer.domElement
+    const root = document.documentElement
+    const raycaster = new THREE.Raycaster()
+    const ndc = new THREE.Vector2()
+    const anchor = V(0, 0, 0)
+    let mouse = null // last mouse position over the model
+    let anchored = null // last part shown, so its label keeps following it
+    let down = null
+    // The canvas sits behind page content (the hero copy's boxes overlap it), so
+    // it does not receive every event over the model. Pointer events are read on
+    // the window instead: one counts when it is inside the canvas and not on a
+    // link, button or field (those, including the part label, keep their own).
+    const INTERACTIVE = 'a, button, input, select, textarea, label, [role="button"]'
+    const overModel = (e) => {
+      const rect = el.getBoundingClientRect()
+      if (e.clientX < rect.left || e.clientX >= rect.right || e.clientY < rect.top || e.clientY >= rect.bottom) return false
+      return e.target === el || !(e.target instanceof Element && e.target.closest(INTERACTIVE))
+    }
+    const partAt = (x, y) => {
+      const rect = el.getBoundingClientRect()
+      ndc.set(((x - rect.left) / rect.width) * 2 - 1, -((y - rect.top) / rect.height) * 2 + 1)
+      raycaster.setFromCamera(ndc, camera)
+      return raycaster.intersectObjects(assembly.children, true)[0]?.object.userData.part ?? null
+    }
+    const setHovered = (p) => {
+      if (p === hovered) return
+      hovered = p
+      if (p) anchored = p
+      // on the root too, so the pointer cursor also shows where page content overlaps the model
+      el.style.cursor = root.style.cursor = p ? 'pointer' : ''
+      onHover?.(p ? { id: p.index, name: p.name, kind: p.kind } : null)
+      if (!frame) renderOnce()
+    }
+    // runs after each render, so picking and the label use the frame on screen
+    updateLinks = () => {
+      // the model keeps turning under a still cursor, so re-check what is under it
+      if (mouse && animate) setHovered(partAt(mouse.x, mouse.y))
+      if (!anchored || !onAnchor) return
+      anchored.group.getWorldPosition(anchor).project(camera)
+      onAnchor(((anchor.x + 1) / 2) * el.clientWidth, ((1 - anchor.y) / 2) * el.clientHeight)
+    }
+    const onMove = (e) => {
+      if (e.pointerType !== 'mouse') return
+      if (!overModel(e)) {
+        mouse = null
+        return setHovered(null)
+      }
+      mouse = { x: e.clientX, y: e.clientY }
+      setHovered(partAt(e.clientX, e.clientY))
+    }
+    const onLeave = (e) => {
+      if (e.pointerType !== 'mouse') return
+      mouse = null
+      setHovered(null)
+    }
+    const onDown = (e) => (down = overModel(e) ? { x: e.clientX, y: e.clientY } : null)
+    const onCancel = () => (down = null)
+    const onUp = (e) => {
+      // a click or tap on the model, not a scroll or drag
+      if (!down || pinch || !overModel(e) || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) return (down = null)
+      down = null
+      const p = partAt(e.clientX, e.clientY)
+      onPick?.(p ? { id: p.index, name: p.name, kind: p.kind } : null, e.pointerType)
+      if (e.pointerType !== 'mouse') setHovered(p) // touch: a tap shows the label
+    }
+    // --- zoom in over the model to pull it apart (same exploded view as explore mode) ---
+    const inCanvas = (x, y) => {
+      const rect = el.getBoundingClientRect()
+      return x >= rect.left && x < rect.right && y >= rect.top && y < rect.bottom
+    }
+    const setZoom = (value) => {
+      manualExplode = clamp01(value)
+      if (!animate) { explodeShown = manualExplode; renderOnce() }
+    }
+    let wheelAt = 0
+    let wheelZooms = false
+    const onWheel = (e) => {
+      // one wheel gesture (events close together) either zooms the model or scrolls
+      // the page, never both: scrolling up to the top does not start a zoom, and
+      // zooming out does not run on into a page scroll
+      const fresh = e.timeStamp - wheelAt > 250
+      wheelAt = e.timeStamp
+      if (!overModel(e)) return (wheelZooms = false)
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY
+      if (!dy) return
+      // A trackpad pinch (ctrl + wheel) always zooms the model, never the page. A
+      // plain wheel zooms in only at the top of the page, and zooms out only until
+      // the model is whole again; otherwise the page scrolls as usual.
+      if (e.ctrlKey) wheelZooms = true
+      else if (fresh) wheelZooms = dy < 0 ? manualExplode < 1 && window.scrollY <= 1 : manualExplode > 0
+      if (!wheelZooms) return
+      e.preventDefault()
+      e.stopPropagation() // keep the smooth-scroll library from scrolling as well
+      setZoom(manualExplode - dy * (e.ctrlKey ? 0.01 : 0.0012))
+    }
+    // two-finger pinch
+    let pinch = null
+    const spread = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY)
+    const onPinchMove = (e) => {
+      if (!pinch || e.touches.length !== 2) return
+      if (e.cancelable) e.preventDefault() // no page zoom or scroll while pinching the model
+      setZoom(pinch.zoom + (spread(e.touches) / pinch.spread - 1) * 0.9)
+    }
+    const onTouchStart = (e) => {
+      const t = e.touches
+      if (t.length !== 2 || !inCanvas(t[0].clientX, t[0].clientY) || !inCanvas(t[1].clientX, t[1].clientY)) return
+      down = null // a pinch is not a tap
+      pinch = { spread: Math.max(1, spread(t)), zoom: manualExplode }
+      window.addEventListener('touchmove', onPinchMove, { passive: false })
+    }
+    const onTouchEnd = (e) => {
+      if (!pinch || e.touches.length >= 2) return
+      pinch = null
+      window.removeEventListener('touchmove', onPinchMove)
+    }
+    // Safari's own pinch gesture would zoom the page
+    const onGesture = (e) => { if (inCanvas(e.clientX, e.clientY)) e.preventDefault() }
+    el.style.touchAction = 'pan-y' // vertical page scroll stays; pinch goes to the model
+    window.addEventListener('wheel', onWheel, { passive: false, capture: true })
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchend', onTouchEnd, { passive: true })
+    window.addEventListener('touchcancel', onTouchEnd, { passive: true })
+    window.addEventListener('gesturestart', onGesture)
+    window.addEventListener('gesturechange', onGesture)
+
+    window.addEventListener('pointermove', onMove, { passive: true })
+    root.addEventListener('pointerleave', onLeave)
+    window.addEventListener('pointerdown', onDown, { passive: true })
+    window.addEventListener('pointercancel', onCancel, { passive: true })
+    window.addEventListener('pointerup', onUp)
+    clearTouch = () => setHovered(null)
+    removeLinks = () => {
+      window.removeEventListener('pointermove', onMove)
+      root.removeEventListener('pointerleave', onLeave)
+      window.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('pointercancel', onCancel)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('wheel', onWheel, { capture: true })
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onPinchMove)
+      window.removeEventListener('touchend', onTouchEnd)
+      window.removeEventListener('touchcancel', onTouchEnd)
+      window.removeEventListener('gesturestart', onGesture)
+      window.removeEventListener('gesturechange', onGesture)
+      if (hovered) root.style.cursor = ''
+    }
+  }
+
   const resize = () => {
     const { clientWidth: w, clientHeight: h } = container
     if (!w || !h) return
@@ -518,10 +694,15 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
       progress = clamp01(value)
       if (!animate) renderOnce()
     },
+    /** links mode: hide the label shown by a tap */
+    clearHover() {
+      clearTouch?.()
+    },
     dispose() {
       disposed = true
       stop()
       window.removeEventListener('pointermove', onPointerMove)
+      removeLinks?.()
       resizeObserver.disconnect()
       intersectionObserver.disconnect()
       disposables.forEach((d) => d.dispose())
