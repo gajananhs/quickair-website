@@ -1,37 +1,72 @@
 name: Deploy to Hostinger
 
-# Manual only: run it from the Actions tab ("Run workflow").
-# Needs repository secrets FTP_SERVER, FTP_USERNAME and FTP_PASSWORD
-# (hPanel -> Files -> FTP Accounts) and ANTHROPIC_API_KEY (the Claude API key
-# the "Talk to Quickair Assistant" button uses). The server must run PHP 8.1+.
+# Runs on every push to main, and manually from the Actions tab ("Run workflow").
+#
+# Repository secrets (Settings -> Secrets and variables -> Actions -> Secrets):
+#   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD  (hPanel -> Files -> FTP Accounts).
+#     FTP_SERVER must be a hostname that matches the server's TLS certificate,
+#     because the upload verifies the certificate strictly.
+#   ANTHROPIC_API_KEY  the Claude API key the "Talk to Quickair Assistant" button uses.
+#
+# Repository variable (Settings -> Secrets and variables -> Actions -> Variables):
+#   FTP_SERVER_DIR  folder on the server to upload into, ending with /.
+#                   Defaults to public_html/ when not set.
+#
+# The server must run PHP 8.2+ (required by the assistant's Composer libraries).
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       server_dir:
-        description: Folder on the server to upload into (must end with /)
-        required: true
-        default: public_html/
+        description: Folder on the server to upload into (ends with /). Leave empty to use the FTP_SERVER_DIR variable.
+        required: false
+        default: ''
 
 concurrency:
   group: deploy
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # The first upload includes the assistant's PHP libraries (vendor/), which is slow over FTPS.
+    timeout-minutes: 60
+    env:
+      SERVER_DIR: ${{ inputs.server_dir || vars.FTP_SERVER_DIR || 'public_html/' }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check the upload folder
+        run: |
+          case "$SERVER_DIR" in
+            */) ;;
+            *) echo "::error::The upload folder must end with / (got '$SERVER_DIR')."; exit 1 ;;
+          esac
+          case "$SERVER_DIR" in
+            /*|*..*) echo "::error::The upload folder must be a relative path without '..' (got '$SERVER_DIR')."; exit 1 ;;
+          esac
+          echo "Uploading into: $SERVER_DIR"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+
       - name: Install the talk button's PHP libraries
         working-directory: public/api/private
         run: |
+          composer validate --no-check-publish --no-check-all
           composer install --no-dev --no-interaction --classmap-authoritative
+          composer check-platform-reqs --no-dev
           rm -rf vendor/anthropic-ai/sdk/{tests,examples,scripts,fixtures}
+
       - run: npm run build
+
       - name: Give the talk button its API key
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -41,6 +76,43 @@ jobs:
             exit 1
           fi
           php -r 'file_put_contents("dist/api/private/config.php", "<?php return " . var_export(["anthropic_api_key" => getenv("ANTHROPIC_API_KEY")], true) . ";\n");'
+
+      - name: Check the build output
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          fail() { echo "::error::$1"; exit 1; }
+
+          # React app, routing and SEO files
+          for f in index.html .htaccess robots.txt sitemap.xml; do
+            [ -s "dist/$f" ] || fail "dist/$f is missing or empty."
+          done
+          ls dist/assets/*.js >/dev/null 2>&1 || fail "dist/assets has no JavaScript bundles."
+          ls dist/assets/*.css >/dev/null 2>&1 || fail "dist/assets has no stylesheet."
+          grep -q '<div id="root">' dist/index.html || fail "dist/index.html has no React root element."
+          grep -q 'src="/assets/' dist/index.html || fail "dist/index.html does not load the built bundle."
+          php -r '$x = simplexml_load_file("dist/sitemap.xml"); exit($x === false || count($x->url) === 0 ? 1 : 0);' \
+            || fail "dist/sitemap.xml is not a valid sitemap."
+
+          # Talk to Quickair Assistant
+          for f in api/assistant.php api/private/.htaccess api/private/settings.php api/private/prompt.php \
+                   api/private/config.php api/private/vendor/autoload.php; do
+            [ -s "dist/$f" ] || fail "dist/$f is missing or empty."
+          done
+          for f in dist/api/assistant.php dist/api/private/settings.php dist/api/private/prompt.php dist/api/private/config.php; do
+            php -l "$f" >/dev/null || fail "$f has a PHP syntax error."
+          done
+          php -r 'require "dist/api/private/vendor/autoload.php"; exit(class_exists(Anthropic\Client::class) ? 0 : 1);' \
+            || fail "The Anthropic PHP SDK does not load from dist/api/private/vendor."
+          php -r '$c = require "dist/api/private/config.php"; exit(is_array($c) && ($c["anthropic_api_key"] ?? "") !== "" ? 0 : 1);' \
+            || fail "dist/api/private/config.php does not hold the API key."
+
+          # The key may appear in config.php only (file names are printed, never contents).
+          leaks=$(grep -rlF --exclude=config.php -- "$ANTHROPIC_API_KEY" dist || true)
+          [ -z "$leaks" ] || fail "The API key appears outside config.php: $leaks"
+
+          echo "Build output looks complete."
+
       - name: Upload dist/ to Hostinger
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -48,6 +120,13 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
+          # Verify the server's TLS certificate instead of accepting any certificate.
+          security: strict
           local-dir: dist/
-          server-dir: ${{ inputs.server_dir }}
+          server-dir: ${{ env.SERVER_DIR }}
+          # Never wipe the server folder first. Files this workflow did not upload (WordPress
+          # files, the assistant's data/ counters, anything else on the host) are left alone.
+          dangerous-clean-slate: false
+          log-level: standard
+
       - run: echo "Deploy complete - ${{ github.sha }}"
