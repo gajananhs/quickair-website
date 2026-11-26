@@ -115,7 +115,8 @@ export const productSchema = (product, { name, description, path, category }) =>
     category,
     ...(product.image ? { image: absoluteUrl(product.image.src) } : {}),
     ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
-    manufacturer: { '@id': ORG_ID },
+    // only where the site states the product is made in-house (aluminium piping and extrusions)
+    ...(product.seo?.madeInHouse ? { manufacturer: { '@id': ORG_ID } } : {}),
     ...(material ? { material } : {}),
     ...(rows.length
       ? { additionalProperty: rows.map(([key, value]) => ({ '@type': 'PropertyValue', name: key, value })) }

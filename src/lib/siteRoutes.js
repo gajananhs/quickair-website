@@ -21,6 +21,8 @@ export const siteRoutes = () => [
  * Article addresses come from `originalUrl` in articles.json; the rest are listed
  * in WEBSITE_SITEMAP.md.
  */
+const wasOnWordPress = (article) => article.originalUrl === `https://www.quickair.in/${article.slug}/`
+
 export const legacyRedirects = () => [
   ['home', ROUTES.home],
   ['home-v3-preview', ROUTES.services],
@@ -28,6 +30,7 @@ export const legacyRedirects = () => [
   ['quickair-pipe-size-pressure-drop-calculator', ROUTES.pipeSize],
   ['pressure-drop-calculator', ROUTES.pressureDrop],
   ['electricity-power-calculator', ROUTES.electricityCost],
-  ...guides.map((article) => [article.slug, `${ROUTES.blog}/${article.slug}`]),
-  ...caseStudies.map((article) => [article.slug, `${ROUTES.caseStudies}/${article.slug}`]),
+  // only articles that existed on the WordPress site (they carry its address); later articles never had an old address
+  ...guides.filter(wasOnWordPress).map((article) => [article.slug, `${ROUTES.blog}/${article.slug}`]),
+  ...caseStudies.filter(wasOnWordPress).map((article) => [article.slug, `${ROUTES.caseStudies}/${article.slug}`]),
 ]

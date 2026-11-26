@@ -3,7 +3,8 @@
  * of src/entry-server.jsx). For every page in siteRoutes() it writes a static
  * HTML file with that page's own <head> and full content, so search engines
  * and visitors without JavaScript get real pages. It also writes 404.html,
- * sitemap.xml and the list of valid routes in .htaccess.
+ * sitemap.xml, the list of valid routes in .htaccess (Apache / LiteSpeed hosts)
+ * and keeps vercel.json (Vercel) in step with it.
  *
  *   dist/index.html              home page
  *   dist/_pages/<route>.html     every other page (served at /<route> by .htaccess)
@@ -97,30 +98,43 @@ const htaccessFile = join(dist, '.htaccess')
 const htaccess = await readFile(htaccessFile, 'utf8')
 const marker = /# BEGIN prerendered routes[\s\S]*?# END prerendered routes/
 if (!marker.test(htaccess)) throw new Error('public/.htaccess has no "# BEGIN prerendered routes … # END prerendered routes" block')
-// one rule per section keeps every pattern short
-const groups = new Map()
+// Plain alternations only, and several short rules instead of one long one, so the
+// patterns stay well inside every server's line and regex limits as pages are added.
+const chunks = (items, room = 900) => {
+  const out = [[]]
+  let used = 0
+  for (const item of items) {
+    if (used + item.length > room && out.at(-1).length) {
+      out.push([])
+      used = 0
+    }
+    out.at(-1).push(item)
+    used += item.length + 1
+  }
+  return out.filter((chunk) => chunk.length)
+}
+const sections = new Map()
 for (const route of routeList) {
   const [section, ...rest] = route.split('/')
-  if (!groups.has(section)) groups.set(section, [])
-  if (rest.length) groups.get(section).push(rest.join('/'))
-  else groups.get(section).unshift('')
+  if (!sections.has(section)) sections.set(section, { own: false, children: [] })
+  if (rest.length) sections.get(section).children.push(rest.join('/'))
+  else sections.get(section).own = true
 }
-const rules = [...groups].map(([section, items]) => {
-  const own = items.includes('')
-  const children = items.filter(Boolean)
-  const pattern = children.length ? `${section}${own ? '(?:' : ''}/(?:${children.join('|')})${own ? ')?' : ''}` : section
-  return `  RewriteRule ^(${pattern})$ _pages/$1.html [L]`
-})
+const rules = [...sections].flatMap(([section, { own, children }]) => [
+  ...(own ? [`  RewriteRule ^(${section})$ _pages/$1.html [L]`] : []),
+  ...chunks(children).map((chunk) => `  RewriteRule ^(${section}/(${chunk.join('|')}))$ _pages/$1.html [L]`),
+])
 // old WordPress addresses, grouped by the page they now lead to
 const legacy = new Map()
 for (const [from, to] of legacyRedirects()) {
   if (routes.some(({ path }) => path === '/' + from)) throw new Error(`Legacy address /${from} is a current route`)
+  // "/blog/<slug>" style targets share one rule per section; fixed targets get their own
   const prefix = to.endsWith('/' + from) ? to.slice(0, -from.length - 1) : null
-  const key = prefix ?? to
-  if (!legacy.has(key)) legacy.set(key, { keepSlug: prefix !== null, from: [] })
+  const key = prefix === null ? `page ${to}` : `section ${prefix}`
+  if (!legacy.has(key)) legacy.set(key, { target: prefix ?? to, keepSlug: prefix !== null, from: [] })
   legacy.get(key).from.push(escapeRegex(from))
 }
-const redirects = [...legacy].map(([target, { keepSlug, from }]) => `  RewriteRule ^(${from.join('|')})/?$ ${target}${keepSlug ? '/$1' : ''} [R=301,L]`)
+const redirects = [...legacy.values()].flatMap(({ target, keepSlug, from }) => chunks(from).map((chunk) => `  RewriteRule ^(${chunk.join('|')})/?$ ${target}${keepSlug ? '/$1' : ''} [R=301,L]`))
 const block = [
   '# BEGIN prerendered routes (written by scripts/prerender.mjs)',
   '  # 5. Old WordPress addresses -> current pages',
@@ -133,6 +147,41 @@ const block = [
   '  # END prerendered routes',
 ].join('\n')
 await writeFile(htaccessFile, htaccess.replace(marker, () => block))
+
+// vercel.json: the same routing for Vercel, which ignores .htaccess. Vercel reads the
+// file from the repository before it builds, so it is kept in git; this step only
+// makes sure the committed copy matches the site's pages.
+const vercelFile = join(root, 'vercel.json')
+const vercel = {
+  $schema: 'https://openapi.vercel.sh/vercel.json',
+  buildCommand: 'npm run build',
+  outputDirectory: 'dist',
+  cleanUrls: false,
+  trailingSlash: false,
+  redirects: [
+    { source: '/:path*', has: [{ type: 'host', value: SITE_URL.replace('https://www.', '') }], destination: `${SITE_URL}/:path*`, permanent: true },
+    ...[...legacy.values()].flatMap(({ target, keepSlug, from }) =>
+      chunks(from, 3000).map((chunk) => ({ source: `/(${chunk.join('|')})`, destination: keepSlug ? `${target}/$1` : target, permanent: true })),
+    ),
+  ],
+  // every address without a file extension is looked up among the prerendered pages;
+  // if there is no such page Vercel answers 404 with /404.html
+  rewrites: [{ source: '/((?!_pages/|assets/|qa/|api/)[^.]+)', destination: '/_pages/$1.html' }],
+  headers: [
+    { source: '/(.*)', headers: [{ key: 'X-Content-Type-Options', value: 'nosniff' }] },
+    { source: '/assets/(.*)', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
+  ],
+}
+const vercelJson = JSON.stringify(vercel, null, 2) + '\n'
+const committed = await readFile(vercelFile, 'utf8').catch(() => '')
+if (committed !== vercelJson) {
+  if (process.env.CI || process.env.VERCEL) {
+    problems.push('vercel.json does not match the site\'s pages: run `npm run build` locally and commit the updated vercel.json')
+  } else {
+    await writeFile(vercelFile, vercelJson)
+    console.log('vercel.json updated to match the site\'s pages: commit it.')
+  }
+}
 
 await rm(ssrDir, { recursive: true, force: true })
 

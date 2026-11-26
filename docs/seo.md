@@ -13,7 +13,23 @@ How search engines get real pages from this React + Vite site, and what to touch
      `<title>`, description, canonical URL, Open Graph / Twitter tags, JSON-LD and full content;
    - `dist/404.html`, sent with HTTP 404 for unknown addresses;
    - `dist/sitemap.xml`;
-   - the route and redirect rules inside `dist/.htaccess`.
+   - the route and redirect rules inside `dist/.htaccess`;
+   - `vercel.json`, kept in step with the same rules (see Hosting).
+
+## Hosting
+
+The same build works on both hosts; each reads its own routing file.
+
+| Host | Routing file | Notes |
+| --- | --- | --- |
+| Hostinger (Apache / LiteSpeed) | `dist/.htaccess`, from `public/.htaccess` plus the rules the build writes | Runs the PHP assistant (`/api/assistant.php`). Deployed by `.github/workflows/deploy.yml`. |
+| Vercel | `vercel.json` in the repository root | Vercel reads it before building, so it is committed. The build rewrites it locally when the page list changes and fails on Vercel/CI if the committed copy is out of date. `.vercelignore` keeps the PHP backend out of Vercel, which cannot run PHP and would publish the files as text. |
+
+Both give: one address per page (no trailing slash), 301/308 from the old WordPress addresses,
+prerendered pages for known routes and a real 404 with `404.html` for everything else.
+
+`npm run preview` (Vite's preview server) knows neither file: it serves the homepage HTML for every
+address, so deep links there show a hydration warning. Use it for the homepage or test on a real host.
 
 The build fails if two pages share a title or description, if a page has no single `<h1>`, if a
 canonical URL is wrong, or if a page throws while rendering.

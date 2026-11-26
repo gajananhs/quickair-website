@@ -1,0 +1,86 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "quickair.in"
+        }
+      ],
+      "destination": "https://www.quickair.in/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/(home)",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/(home-v3-preview)",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/(case-study)",
+      "destination": "/case-studies",
+      "permanent": true
+    },
+    {
+      "source": "/(quickair-pipe-size-pressure-drop-calculator)",
+      "destination": "/calculators/pipe-size",
+      "permanent": true
+    },
+    {
+      "source": "/(pressure-drop-calculator)",
+      "destination": "/calculators/pressure-drop",
+      "permanent": true
+    },
+    {
+      "source": "/(electricity-power-calculator)",
+      "destination": "/calculators/electricity-cost",
+      "permanent": true
+    },
+    {
+      "source": "/(pressure-drop-in-compressed-air-piping|pvc-vs-aluminium-compressed-air-pipe|compressed-air-audit|compressed-air-receiver-tank|compressed-air-pressure-drop|pvc-pipe-for-compressed-air|compressed-air-pipe-size-chart-2|cfm-vs-psi-explaination|compressed-air-flow-calculation|industrial-compressed-air-piping|compressed-air-distribution-system|air-pipe-fittings|compressed-air-fittings|compressed-air-piping|pipe-to-pipe-connector|air-piping-systems-suppliers|pex-compressed-air-piping-is-it-right-for-your-facility|stainless-steel-compressed-air-piping-when-to-use-it|compressed-air-leaks-in-manufacturing|energy-efficient-piping|corrosion-resistant-piping|modular-piping-system|compressed-air-system-maintenance|modular-compressed-air-piping-installation|compressed-air-leak-detection|air-pipe-sizing-guide|aluminium-vs-steel-compressed-air-pipe|aluminium-compressed-air)",
+      "destination": "/blog/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(performance-comparison-of-gi-piping-vs-aluminium-modular-piping-quickair|influence-of-piping-material-on-pressure-drop-and-air-quality|evolution-of-compressed-air-piping|leak-free-performance-of-quickair-modular-piping-system)",
+      "destination": "/case-studies/$1",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!_pages/|assets/|qa/|api/)[^.]+)",
+      "destination": "/_pages/$1.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}

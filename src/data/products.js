@@ -217,13 +217,15 @@ export const fullName = (p) => (p.variant ? `${p.name} · ${p.variant}` : p.name
 /**
  * Search title, search description and brand for each product page.
  * Every figure repeats the product's own specification or feature list above.
+ * `madeInHouse` marks the products the site says Canares manufactures itself
+ * (modular aluminium pipe fittings; aluminium extrusions from the in-house plant).
  */
 export const PRODUCT_SEO = {
-  "push-fit-aluminium-to-engineering-plastic": { brand: "Quickair", title: "Push-Fit Aluminium Air Piping, Engineering Plastic Fittings", description: "Quickair push-fit aluminium piping with engineering plastic fittings for compressed air, vacuum, nitrogen and argon. Up to 20 Bar, alloy 6063 T5." },
-  "push-fit-aluminium-to-aluminium": { brand: "Quickair", title: "Push-Fit Aluminium Air Piping with Aluminium Fittings", description: "Quickair push-fit aluminium piping with all-aluminium fittings for compressed air, vacuum, nitrogen and argon. Up to 20 Bar, -20°C to 200°C." },
-  "crimping-type-integrated-fitting": { brand: "Quickair", title: "Crimping Type Aluminium Piping with Integrated Fitting", description: "Quickair crimping type aluminium piping with integrated fittings: up to 40 Bar working pressure, quality tested at 60 Bar, -20°C to 200°C, BSP or NPT threads." },
+  "push-fit-aluminium-to-engineering-plastic": { madeInHouse: true, brand: "Quickair", title: "Push-Fit Aluminium Air Piping, Engineering Plastic Fittings", description: "Quickair push-fit aluminium piping with engineering plastic fittings for compressed air, vacuum, nitrogen and argon. Up to 20 Bar, alloy 6063 T5." },
+  "push-fit-aluminium-to-aluminium": { madeInHouse: true, brand: "Quickair", title: "Push-Fit Aluminium Air Piping with Aluminium Fittings", description: "Quickair push-fit aluminium piping with all-aluminium fittings for compressed air, vacuum, nitrogen and argon. Up to 20 Bar, -20°C to 200°C." },
+  "crimping-type-integrated-fitting": { madeInHouse: true, brand: "Quickair", title: "Crimping Type Aluminium Piping with Integrated Fitting", description: "Quickair crimping type aluminium piping with integrated fittings: up to 40 Bar working pressure, quality tested at 60 Bar, -20°C to 200°C, BSP or NPT threads." },
   "pex-push-to-fit": { brand: "Quickpex", title: "PEX Compressed Air Piping with Brass Push-to-Fit Fittings", description: "Quickpex modular PEX piping with brass push-to-fit fittings for compressed air and inert gases. Sizes 20, 25 and 32 mm, up to 12 Bar, 90°C continuous service." },
-  "aluminium-extrusions": { title: "Aluminium Extrusion Profiles and Accessories", description: "Aluminium extrusion profiles in series 20 to 100, with bolts, brackets, connectors and joints, for structural frameworks, cleanrooms and assembly systems." },
+  "aluminium-extrusions": { madeInHouse: true, title: "Aluminium Extrusion Profiles and Accessories", description: "Aluminium extrusion profiles in series 20 to 100, with bolts, brackets, connectors and joints, for structural frameworks, cleanrooms and assembly systems." },
   "esd-prevention": { title: "ESD Prevention Products for Electronics Assembly", description: "ESD prevention products: PCB trays, crates, wrist straps, ESD shoes, mats and resistivity meters for electronics assembly and cleanrooms." },
   "protork-a300-m300-ball-valves": { brand: "Protork", title: "Protork A 300 & M 300 Series 3-Piece Ball Valves", description: "Protork A 300 and M 300 series 3-piece ball valves: regular and full bore from 1/4″ to 4″, -30°C to 300°C, in WCB, CF8 and CF8M, fire-safe design per API 607." },
   "torquemate-pneumatic-actuators": { brand: "Torquemate", title: "Torquemate Pneumatic Actuators: Double-Acting, Spring-Return", description: "Torquemate pneumatic actuators in double-acting and spring-return configurations, with extruded aluminium bodies, built to NAMUR and ISO standards." },
