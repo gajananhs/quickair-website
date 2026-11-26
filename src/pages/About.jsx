@@ -52,8 +52,8 @@ function Timeline() {
 export default function About() {
   return (
     <>
-      <Seo title={about.metaTitle} description={about.metaDescription} />
-      <PageHero crumbs={[['About']]} title={about.heroTitle} lead={about.heroLines[0]} image="/qa/home/quickair-blue-aluminium-compressed-air-piping-installed-in-a-factory.jpg" size="lg">
+      <Seo title={about.metaTitle} description={about.seoDescription} crumbs={[['About']]} />
+      <PageHero crumbs={[['About']]} title={about.heroTitle} lead={`${about.heroBrands}. ${about.heroLines[0]}.`} image="/qa/home/quickair-blue-aluminium-compressed-air-piping-installed-in-a-factory.jpg" size="lg">
         <Button to="#brief" icon={<ArrowRight />}>{about.briefTitle}</Button>
         <Button to={ROUTES.contact} variant="secondary">Contact us</Button>
       </PageHero>

@@ -3,11 +3,14 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Download, Mail, Phone } from 'lucide-react'
 import { groups, productsIn, productsIntro, fullName } from '@/data/products'
 import { company, enquiry } from '@/data/company'
+import { PRODUCT_RESOURCES } from '@/data/articleSeo'
+import { ROUTES } from '@/data/navigation'
 import { gsap, prefersReducedMotion } from '@/lib/motion'
 import { cn } from '@/lib/cn'
 import { Button, Eyebrow, Section, Seo } from '@/components/ui'
 import PageHero from '@/components/sections/PageHero'
 import ContactCta from '@/components/sections/ContactCta'
+import RelatedLinks from '@/components/sections/RelatedLinks'
 import SystemExplorer from '@/components/sections/SystemExplorer'
 import JointDiagram from '@/components/sections/JointDiagram'
 import Reveal from '@/components/motion/Reveal'
@@ -15,7 +18,7 @@ import SplitText from '@/components/motion/SplitText'
 import ImageReveal from '@/components/motion/ImageReveal'
 import Tilt from '@/components/motion/Tilt'
 
-const THEMES = { aluminium: 'light', pex: 'alu', extrusions: 'light', valves: 'alu' }
+const THEMES = { aluminium: 'light', pex: 'alu', valves: 'light', extrusions: 'alu' }
 
 /** Product with a photo and key figures (piping systems). `wide`: photo beside the details (a category's only card). */
 function SystemCard({ product, wide = false }) {
@@ -39,7 +42,7 @@ function SystemCard({ product, wide = false }) {
           ))}
         </dl>
         <div className="mt-auto flex flex-wrap gap-x-6 pt-3">
-          <Link to={`/products/${product.slug}`} className="group/l inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-(--accent)">
+          <Link to={`/products/${product.slug}`} aria-label={`${fullName(product)}: full specifications`} className="group/l inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-(--accent)">
             Full specifications <ArrowRight className="size-4 transition-transform duration-300 ease-out-expo group-hover/l:translate-x-1" aria-hidden="true" />
           </Link>
           <a href={product.catalogue} download className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-(--fg-muted) hover:text-(--accent)">
@@ -61,8 +64,11 @@ function FeatureRow({ product, index }) {
           <Link to={`/products/${product.slug}`} className="transition-colors hover:text-(--accent)">{product.name}</Link>
         </h3>
         <div className="mt-2 flex flex-wrap gap-x-6">
-          <Link to={`/contact?product=${encodeURIComponent(product.name)}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-(--accent)">
-            Enquire now <ArrowRight className="size-4 transition-transform duration-300 ease-out-expo group-hover:translate-x-1" aria-hidden="true" />
+          <Link to={`/products/${product.slug}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-(--accent)" aria-label={`${product.name}: features and details`}>
+            Product details <ArrowRight className="size-4 transition-transform duration-300 ease-out-expo group-hover:translate-x-1" aria-hidden="true" />
+          </Link>
+          <Link to={`/contact?product=${encodeURIComponent(product.name)}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-(--fg-muted) hover:text-(--accent)">
+            Enquire now
           </Link>
           <a href={product.catalogue} download className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-(--fg-muted) hover:text-(--accent)">
             <Download className="size-4" aria-hidden="true" /> Download catalogue
@@ -93,7 +99,7 @@ export default function Products() {
 
   return (
     <>
-      <Seo title="Aluminium Pipe Fittings for Compressed Air" description="Explore Quickair's aluminium pipe fittings for compressed air, vacuum & inert gases, plus SS and PEX piping, valves & actuators. In-house extrusion." image={productsIntro.photos[0].src} />
+      <Seo title="Aluminium Pipe Fittings for Compressed Air" description="Explore Quickair's aluminium pipe fittings for compressed air, vacuum & inert gases, plus SS and PEX piping, valves & actuators. In-house extrusion." image={productsIntro.photos[0].src} crumbs={[['Products']]} />
       <PageHero crumbs={[['Products']]} title={productsIntro.title} lead={productsIntro.lead} image={productsIntro.photos[1].src} size="lg">
         <Button to="#enquiry" icon={<ArrowRight />}>Get a quote</Button>
         <Button href={productsIntro.mainCatalogue} download variant="secondary" icon={<Download />}>Download catalogue</Button>
@@ -174,6 +180,7 @@ export default function Products() {
                   {featured.map((product, i) => <FeatureRow key={product.slug} product={product} index={i} />)}
                 </div>
               )}
+              <RelatedLinks className="mt-10 bg-white/60" title={`Guides and tools for ${group.filter.toLowerCase()}`} links={[...PRODUCT_RESOURCES[group.id], { label: 'Product catalogues (PDF)', to: ROUTES.downloads }]} />
             </Section>
           )
         })}

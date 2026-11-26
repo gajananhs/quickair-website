@@ -1,5 +1,5 @@
 /**
- * Procedural Quick Air piping assembly (plain Three.js).
+ * Procedural Quickair piping assembly (plain Three.js).
  *
  * Blue powder-coated aluminium pipe, grey aluminium fittings with black
  * collar nuts, a ball valve, end caps, outlets and support clamps.
@@ -316,7 +316,7 @@ export function createAssemblyScene(container, { idle = false, animate = true, i
   clampAt(V(1.35, H, 0), X, nZ, R)
   clampAt(V(4.1, H, -1.2), Z, X, R)
 
-  // Names shown when a part is hovered (wording from the Quick Air product list).
+  // Names shown when a part is hovered (wording from the Quickair product list).
   const NAMES = new Map([
     [e1, 'Equal and reduced elbows'], [e2, 'Equal and reduced elbows'], [e3, 'Equal and reduced elbows'], [e4, 'Equal and reduced elbows'],
     [t1, 'Equal and reduced tees'], [t2, 'Equal and reduced tees'],

@@ -1,6 +1,6 @@
 # Quick Air website sitemap
 
-Standalone React + Vite site. 16 route patterns, 59 pages in total.
+Standalone React + Vite site, prerendered to static HTML at build time (see docs/seo.md). 18 route patterns, 58 indexable pages plus the 404 page.
 
 ## Navigation
 
@@ -25,6 +25,8 @@ Standalone React + Vite site. 16 route patterns, 59 pages in total.
 | `/case-studies/:slug` | Case study (4) | Reading progress, article, related | 4 case study pages |
 | `/blog` | Blog | Search, article cards, case study link | `/blog/` |
 | `/blog/:slug` | Article (28) | Reading progress, contents, article, related | 28 guide pages |
+| `/downloads` | Downloads | Seven catalogue PDFs with the products they cover | New (catalogue files from the product pages) |
+| `/dealers` | Dealers | Dealer programme, benefits, registration, regional contacts | Dealer network section of `/` and `/contact/` |
 | `/contact` | Contact | Contact cards, head office, quote form, four zones, dealer network, map | `/contact/` |
 | `*` | Not found | | |
 

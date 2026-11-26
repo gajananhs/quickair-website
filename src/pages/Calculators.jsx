@@ -5,9 +5,11 @@ import { ROUTES } from '@/data/navigation'
 import { services } from '@/data/services'
 import { electricityCost, FLOW_UNITS, LENGTH_UNITS, LINES, MATERIALS, MEDIA, pipeSize, pressureDrop, QUICKAIR_PIPES, SYSTEMS } from '@/lib/calculators'
 import { cn } from '@/lib/cn'
+import { calculatorSchema } from '@/lib/seo'
 import { Button, Section, Seo } from '@/components/ui'
 import PageHero from '@/components/sections/PageHero'
 import ContactCta from '@/components/sections/ContactCta'
+import RelatedLinks from '@/components/sections/RelatedLinks'
 import Reveal from '@/components/motion/Reveal'
 import Tilt from '@/components/motion/Tilt'
 
@@ -83,6 +85,20 @@ function Result({ label, value, sub }) {
   )
 }
 
+/** Search title and description of each calculator (also used for its WebApplication data). */
+const CALC_SEO = {
+  pipeSize: { title: 'Quickair Pipe Size & Pressure Drop Calculator', description: 'Find the right Quickair pipe size for your flow of air or inert gas and your line length, and see the pressure drop across the line.' },
+  pressureDrop: { title: 'Compressed Air Pressure Drop Calculator by Quickair', description: 'Calculate the pressure drop across a compressed air line from the pipe material, medium, diameter, flow and length, in bar and psi.' },
+  electricityCost: { title: 'Compressed Air Electricity Cost Calculator', description: "This compressed air electricity cost calculator estimates your compressor's running cost and the savings from an efficient piping upgrade." },
+}
+
+const CALC_LINKS = [
+  { label: 'Guide: how to choose the right compressed air pipe diameter', to: `${ROUTES.blog}/air-pipe-sizing-guide` },
+  { label: 'Guide: compressed air pressure drop, causes and calculation', to: `${ROUTES.blog}/compressed-air-pressure-drop` },
+  { label: 'Compressed air pipe size chart', to: `${ROUTES.blog}/compressed-air-pipe-size-chart-2` },
+  { label: 'Aluminium compressed air piping products', to: `${ROUTES.products}#aluminium` },
+]
+
 function Shell({ title, lead, crumbs, form, visual, results, note }) {
   return (
     <>
@@ -96,6 +112,7 @@ function Shell({ title, lead, crumbs, form, visual, results, note }) {
             {note && <p className="text-sm text-(--fg-muted)">{note}</p>}
           </div>
         </div>
+        <RelatedLinks className="mt-12" title="Guides and products for this calculation" links={CALC_LINKS} />
       </Section>
       <OtherCalculators />
       <ContactCta />
@@ -104,8 +121,8 @@ function Shell({ title, lead, crumbs, form, visual, results, note }) {
 }
 
 const CALCS = [
-  { to: ROUTES.pipeSize, icon: Ruler, title: 'QuickAir Pipe Size & Pressure Drop Calculator', text: 'Find the right QuickAir pipe size for your flow and line length.' },
-  { to: ROUTES.pressureDrop, icon: Gauge, title: 'QuickAir Pressure Drop Calculator', text: 'Check the pressure drop across your compressed air line.' },
+  { to: ROUTES.pipeSize, icon: Ruler, title: 'Quickair Pipe Size & Pressure Drop Calculator', text: 'Find the right Quickair pipe size for your flow and line length.' },
+  { to: ROUTES.pressureDrop, icon: Gauge, title: 'Quickair Pressure Drop Calculator', text: 'Check the pressure drop across your compressed air line.' },
   { to: ROUTES.electricityCost, icon: Zap, title: 'Electricity Power Calculator', text: 'Estimate the running cost of compressed air.' },
 ]
 
@@ -135,8 +152,8 @@ function OtherCalculators() {
 export function CalculatorsHub() {
   return (
     <>
-      <Seo title="Calculator" description={services.resourcesLead} />
-      <PageHero crumbs={[['Calculator']]} title="Calculator" lead={services.resourcesLead} image="/qa/gallery/flow-marked-manifold.jpg" />
+      <Seo title="Compressed Air Piping Calculators" description="Free compressed air piping calculators: pipe size by flow and line length, pressure drop by material and diameter, and the electricity cost of pressure loss." image="/qa/gallery/flow-marked-manifold.jpg" crumbs={[['Calculator']]} />
+      <PageHero crumbs={[['Calculator']]} title="Compressed air piping calculators" lead={services.resourcesLead} image="/qa/gallery/flow-marked-manifold.jpg" />
       <Section theme="light">
         <Reveal as="ul" stagger className="grid gap-6 md:grid-cols-3">
           {CALCS.map(({ to, icon: Icon, title, text }) => (
@@ -171,10 +188,10 @@ export function PipeSizeCalculator() {
 
   return (
     <>
-      <Seo title="QuickAir Pipe Size & Pressure Drop Calculator" description="Pipe Size Calculator By Flow Of Air & Inert Gases. Find the right QuickAir pipe size for your flow and line length." />
+      <Seo {...CALC_SEO.pipeSize} crumbs={[['Calculator', ROUTES.calculators], ['Pipe size']]} schema={[calculatorSchema({ ...CALC_SEO.pipeSize, name: CALC_SEO.pipeSize.title, path: ROUTES.pipeSize })]} />
       <Shell
         crumbs={[['Calculator', ROUTES.calculators], ['Pipe size']]}
-        title="QuickAir Pipe Size & Pressure Drop Calculator"
+        title="Quickair Pipe Size & Pressure Drop Calculator"
         lead="Pipe Size Calculator By Flow Of Air & Inert Gases"
         form={
           <form className="grid gap-5 sm:grid-cols-2" onSubmit={(e) => e.preventDefault()}>
@@ -206,11 +223,11 @@ export function PipeSizeCalculator() {
             </div>
           </form>
         }
-        visual={<PipeVisual outer={od ? Number(od) : undefined} inner={od ? QUICKAIR_PIPES[od] : undefined} drop={drop} limit={result?.allowed ?? 0.1} caption={result ? `Allowed drop for this line: ${result.allowed} bar. The ringed size is the QuickAir recommendation.` : 'Enter flow, pressure and length to size the line.'} />}
+        visual={<PipeVisual outer={od ? Number(od) : undefined} inner={od ? QUICKAIR_PIPES[od] : undefined} drop={drop} limit={result?.allowed ?? 0.1} caption={result ? `Allowed drop for this line: ${result.allowed} bar. The ringed size is the Quickair recommendation.` : 'Enter flow, pressure and length to size the line.'} />}
         results={
           <>
-            <Result label="QuickAir Recommended Pipe Size" value={result ? `${result.outer} mm` : '—'} sub={result ? `Inner diameter ${result.inner} mm` : 'Outer diameter'} />
-            <Result label="QuickAir Actual Pressure Drop" value={Number.isFinite(drop) ? `${drop.toFixed(4)} bar` : '—'} sub={od ? `For ${od} mm pipe` : undefined} />
+            <Result label="Quickair Recommended Pipe Size" value={result ? `${result.outer} mm` : '—'} sub={result ? `Inner diameter ${result.inner} mm` : 'Outer diameter'} />
+            <Result label="Quickair Actual Pressure Drop" value={Number.isFinite(drop) ? `${drop.toFixed(4)} bar` : '—'} sub={od ? `For ${od} mm pipe` : undefined} />
           </>
         }
         note="Formula: Δp = 7.57 × Q^1.85 × L × 10⁴ ÷ (d⁵ × P), with Q in m³/min, L in m, d in mm and P in bar. A closed loop halves the flow in each leg."
@@ -231,10 +248,10 @@ export function PressureDropCalculator() {
 
   return (
     <>
-      <Seo title="QuickAir Pressure Drop Calculator" description="Pressure Drop Calculation. Check the pressure drop across your compressed air line." />
+      <Seo {...CALC_SEO.pressureDrop} crumbs={[['Calculator', ROUTES.calculators], ['Pressure drop']]} schema={[calculatorSchema({ ...CALC_SEO.pressureDrop, name: CALC_SEO.pressureDrop.title, path: ROUTES.pressureDrop })]} />
       <Shell
         crumbs={[['Calculator', ROUTES.calculators], ['Pressure drop']]}
-        title="QuickAir Pressure Drop Calculator"
+        title="Quickair Pressure Drop Calculator"
         lead="Pressure Drop Calculation"
         form={
           <form className="grid gap-5 sm:grid-cols-2" onSubmit={(e) => e.preventDefault()}>
@@ -283,7 +300,7 @@ export function ElectricityCalculator() {
 
   return (
     <>
-      <Seo title="Compressed Air Electricity Cost Calculator" description="This compressed air electricity cost calculator estimates your compressor's running cost and the savings from an efficient piping upgrade." />
+      <Seo {...CALC_SEO.electricityCost} crumbs={[['Calculator', ROUTES.calculators], ['Electricity power']]} schema={[calculatorSchema({ ...CALC_SEO.electricityCost, name: CALC_SEO.electricityCost.title, path: ROUTES.electricityCost })]} />
       <Shell
         crumbs={[['Calculator', ROUTES.calculators], ['Electricity power']]}
         title="Compressed Air Electricity Cost Calculator"

@@ -1,0 +1,5 @@
+# Files Vercel must not build or publish.
+# The "Talk to Quickair Assistant" backend is PHP. Vercel cannot run PHP and would
+# publish these files as plain text (source, prompt and the team's e-mail list),
+# so they are left out of Vercel deployments. Hosts that run PHP still get them.
+public/api

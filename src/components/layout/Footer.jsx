@@ -76,7 +76,8 @@ export default function Footer() {
       </Container>
 
       <Container className="border-t border-(--line) py-6 text-xs text-(--fg-muted)">
-        <p>© {new Date().getFullYear()} {company.brand}. All rights reserved.</p>
+        {/* the year is printed at build time and again in the browser; they differ only across a new year */}
+        <p suppressHydrationWarning>© {new Date().getFullYear()} {company.legalName} All rights reserved. {company.brand} is the modular piping brand of {company.legalName}</p>
       </Container>
     </footer>
   )

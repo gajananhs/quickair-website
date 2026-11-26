@@ -5,6 +5,7 @@ import { clients, company, dealerNetwork, heroSlides, intro, process, stats, sys
 import { services } from '@/data/services'
 import { caseStudies } from '@/data/about'
 import { ROUTES } from '@/data/navigation'
+import { websiteSchema } from '@/lib/seo'
 import { gsap, EASE } from '@/lib/motion'
 import { useGsap } from '@/hooks/useGsap'
 import { cn } from '@/lib/cn'
@@ -90,7 +91,7 @@ function Hero() {
   )
 }
 
-/** The three campaign banners from the Quick Air homepage, as a snap carousel. */
+/** The three campaign banners from the Quickair homepage, as a snap carousel. */
 function Campaigns() {
   const track = useRef(null)
   const [index, setIndex] = useState(0)
@@ -147,7 +148,7 @@ function Campaigns() {
 export default function Home() {
   return (
     <>
-      <Seo />
+      <Seo schema={[websiteSchema()]} />
       <Hero />
       <Campaigns />
 
@@ -347,7 +348,7 @@ export default function Home() {
             <Reveal className="mt-5 text-(--fg-muted)">{dealerNetwork.note}</Reveal>
             <Reveal className="mt-8 flex flex-wrap gap-3">
               <Button href={company.dealerRegistrationUrl} target="_blank" rel="noreferrer" icon={<ArrowUpRight />}>{dealerNetwork.cta}</Button>
-              <Button to={`${ROUTES.contact}?type=dealer`} variant="secondary">Dealer enquiry</Button>
+              <Button to={ROUTES.dealers} variant="secondary">About the dealer programme</Button>
             </Reveal>
           </div>
           <div className="relative">

@@ -3,7 +3,7 @@
 export const services = {
   eyebrow: 'Services',
   heroTitle: 'Modular Piping Systems for Compressed Air',
-  heroLead: 'QuickAir’s aluminium compressed air piping system delivers end-to-end engineering support, from design and supply to installation and pressure testing, for compressed air, vacuum and inert gas lines.',
+  heroLead: 'Quickair’s aluminium compressed air piping system delivers end-to-end engineering support, from design and supply to installation and pressure testing, for compressed air, vacuum and inert gas lines.',
   facts: [
     { value: 'Since 1998', label: 'Serving industry' },
     { value: 'In-house', label: 'Aluminium extrusion' },
@@ -37,7 +37,7 @@ export const services = {
   ],
   advantagesEyebrow: 'Advantages',
   advantagesTitle: 'High-Performance Compressed Air Piping Systems & Industrial Solutions',
-  advantagesLead: 'QuickAir modular aluminium piping installs without threading or welding and keeps compressed air clean and leak-free.',
+  advantagesLead: 'Quickair modular aluminium piping installs without threading or welding and keeps compressed air clean and leak-free.',
   advantages: ['Zero-leakage push-fit joints', 'Corrosion and moisture resistant aluminium', 'Energy savings and better flow efficiency', 'ISO quality and safety compliance'],
   whyEyebrow: 'Our services',
   whyTitle: 'Why Choose Our Services?',
@@ -60,12 +60,12 @@ export const services = {
   resourcesTitle: 'Tools, Standards and Projects',
   resourcesLead: 'Free engineering calculators, certifications and project references.',
   resources: [
-    { title: 'Pipe Size Calculator', text: 'Find the right QuickAir pipe size for your flow and line length.', to: '/calculators/pipe-size' },
+    { title: 'Pipe Size Calculator', text: 'Find the right Quickair pipe size for your flow and line length.', to: '/calculators/pipe-size' },
     { title: 'Pressure Drop Calculator', text: 'Check the pressure drop across your compressed air line.', to: '/calculators/pressure-drop' },
     { title: 'Electricity Power Calculator', text: 'Estimate the running cost of compressed air.', to: '/calculators/electricity-cost' },
     { title: 'Certifications & Standards', text: 'ISO 9001:2015, CE; valves to API 607/609 and NAMUR; fittings to ASME.', to: '/about#certifications' },
-    { title: 'Case Study', text: 'Results from QuickAir installations.', to: '/case-studies' },
-    { title: 'Projects & Gallery', text: 'Completed QuickAir piping projects.', to: '/gallery' },
+    { title: 'Case Study', text: 'Results from Quickair installations.', to: '/case-studies' },
+    { title: 'Projects & Gallery', text: 'Completed Quickair piping projects.', to: '/gallery' },
   ],
   closingTitle: 'Why should you work with us?',
   closingText: 'In-house manufacturing, end-to-end engineering support and 24/7 service. Tell us about your requirement and our engineers will get back to you.',

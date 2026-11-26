@@ -9,7 +9,22 @@
       content="Quickair aluminium compressed air piping: leak-free, modular push-fit pipes and fittings for compressed air, vacuum and industrial gases. 26+ years of modular piping experience."
     />
     <link rel="icon" type="image/png" href="/qa/brand/favicon.png" />
-    <title>Quick Air | Aluminium Compressed Air Piping System</title>
+    <title>Quickair | Aluminium Compressed Air Piping Systems</title>
+    <!-- Same rule as prefersReducedMotion() in src/lib/motion.js, applied before the first paint so
+         prerendered content that animates in is not shown and then hidden again when the app starts. -->
+    <script>
+      (function () {
+        var choice = null
+        try {
+          var query = new URLSearchParams(location.search).get('motion')
+          if (query === 'auto') sessionStorage.removeItem('quickair-motion')
+          else if (query) sessionStorage.setItem('quickair-motion', query)
+          choice = sessionStorage.getItem('quickair-motion')
+        } catch (e) {}
+        var reduce = choice === 'reduce' || (choice !== 'full' && window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+        if (!reduce) document.documentElement.classList.add('motion-ok')
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

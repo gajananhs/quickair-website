@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/cn'
 
-/** Official Quick Air logo (transparent PNG from quickair.in), lifted slightly for dark backgrounds. */
+/** Official Quickair logo (transparent PNG from quickair.in), lifted slightly for dark backgrounds. */
 export default function Logo({ className, imgClassName }) {
   return (
-    <Link to="/" aria-label="Quick Air home" className={cn('inline-flex shrink-0 items-center', className)}>
+    <Link to="/" aria-label="Quickair home page" className={cn('inline-flex shrink-0 items-center', className)}>
       <img
         src="/qa/brand/quick-air-logo.png"
         alt="Quickair Modular Piping System: Aluminium | Stainless Steel | Pex"

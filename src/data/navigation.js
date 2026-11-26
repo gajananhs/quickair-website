@@ -13,10 +13,12 @@ export const ROUTES = {
   gallery: '/gallery',
   caseStudies: '/case-studies',
   blog: '/blog',
+  downloads: '/downloads',
+  dealers: '/dealers',
   contact: '/contact',
 }
 
-/** Mirrors the Quick Air menu (Home, About, Products, Calculator, Dealer-Registration, Gallery, Blog, Contact). */
+/** Mirrors the Quickair menu (Home, About, Products, Calculator, Dealer-Registration, Gallery, Blog, Contact). */
 export const mainNav = [
   { label: 'Home', to: ROUTES.home },
   { label: 'About', to: ROUTES.about },
@@ -33,7 +35,7 @@ export const mainNav = [
     label: 'Calculator',
     to: ROUTES.calculators,
     children: [
-      { label: 'Pipe Size & Pressure Drop', to: ROUTES.pipeSize, note: 'Recommended QuickAir pipe size' },
+      { label: 'Pipe Size & Pressure Drop', to: ROUTES.pipeSize, note: 'Recommended Quickair pipe size' },
       { label: 'Pressure Drop', to: ROUTES.pressureDrop, note: 'By material, medium and diameter' },
       { label: 'Electricity Power', to: ROUTES.electricityCost, note: 'Running cost of pressure loss' },
     ],
@@ -44,7 +46,9 @@ export const mainNav = [
     to: ROUTES.blog,
     children: [
       { label: 'Blog', to: ROUTES.blog, note: 'Guides on compressed air piping' },
-      { label: 'Case studies', to: ROUTES.caseStudies, note: 'Results from QuickAir installations' },
+      { label: 'Case studies', to: ROUTES.caseStudies, note: 'Results from Quickair installations' },
+      { label: 'Downloads', to: ROUTES.downloads, note: 'Product catalogues (PDF)' },
+      { label: 'Dealers', to: ROUTES.dealers, note: 'Join the dealer network' },
     ],
   },
   { label: 'Contact', to: ROUTES.contact },
@@ -77,6 +81,8 @@ export const footerNav = [
     links: [
       { label: 'Blog', to: ROUTES.blog },
       { label: 'Case studies', to: ROUTES.caseStudies },
+      { label: 'Downloads', to: ROUTES.downloads },
+      { label: 'Dealers', to: ROUTES.dealers },
     ],
   },
 ]
