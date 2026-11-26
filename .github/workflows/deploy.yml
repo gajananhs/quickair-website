@@ -1,16 +1,24 @@
 name: Deploy to Hostinger
 
-# Runs on every push to main, and manually from the Actions tab ("Run workflow").
+# Two modes:
+#   check   Manual only (Actions tab -> "Deploy to Hostinger" -> Run workflow -> check).
+#           Uploads nothing. Says which secrets are set (never their values), connects
+#           over FTPS with them and lists the FTP account's folders, so the upload folder
+#           can be confirmed against the real Hostinger account.
+#   deploy  Every push to main once FTP_SERVER_DIR is set, or manually with "deploy".
+#           Builds the site and uploads dist/ over FTPS.
 #
 # Repository secrets (Settings -> Secrets and variables -> Actions -> Secrets):
 #   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD  (hPanel -> Files -> FTP Accounts).
 #     FTP_SERVER must be a hostname that matches the server's TLS certificate,
 #     because the upload verifies the certificate strictly.
+#   FTP_PORT  optional, 21 when not set (explicit FTPS).
 #   ANTHROPIC_API_KEY  the Claude API key the "Talk to Quickair Assistant" button uses.
 #
 # Repository variable (Settings -> Secrets and variables -> Actions -> Variables):
-#   FTP_SERVER_DIR  folder on the server to upload into, ending with /.
-#                   Defaults to public_html/ when not set.
+#   FTP_SERVER_DIR  folder on the server to upload into, ending with /, as shown by the
+#                   check run (e.g. public_html/ or ./). There is no default: until it is
+#                   set, pushes to main deploy nothing, so merging this file is safe.
 #
 # The server must run PHP 8.2+ (required by the assistant's Composer libraries).
 on:
@@ -18,6 +26,11 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      mode:
+        description: check = test the FTPS login and list folders (uploads nothing); deploy = build and upload
+        type: choice
+        options: [check, deploy]
+        default: check
       server_dir:
         description: Folder on the server to upload into (ends with /). Leave empty to use the FTP_SERVER_DIR variable.
         required: false
@@ -31,17 +44,76 @@ permissions:
   contents: read
 
 jobs:
+  check:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'check'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      FTP_PORT: ${{ secrets.FTP_PORT }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      SERVER_DIR: ${{ inputs.server_dir || vars.FTP_SERVER_DIR }}
+    steps:
+      - name: Which secrets are set (values are never printed)
+        run: |
+          missing=0
+          for name in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_PORT ANTHROPIC_API_KEY; do
+            if [ -n "${!name}" ]; then echo "set      $name"
+            elif [ "$name" = FTP_PORT ]; then echo "not set  $name (21 will be used)"
+            else echo "MISSING  $name"; missing=1; fi
+          done
+          echo "FTP_SERVER_DIR variable / input: ${SERVER_DIR:-(not set)}"
+          [ "$missing" = 0 ] || { echo "::error::Add the missing secrets, then run the check again."; exit 1; }
+
+      - name: Log in over FTPS and list folders (uploads nothing)
+        run: |
+          umask 077
+          printf 'machine %s login %s password %s\n' "$FTP_SERVER" "$FTP_USERNAME" "$FTP_PASSWORD" > "$RUNNER_TEMP/netrc"
+          trap 'rm -f "$RUNNER_TEMP/netrc"' EXIT
+          # --ssl-reqd: explicit FTPS (AUTH TLS) or nothing; the certificate is verified as in the upload
+          list() { curl --silent --show-error --ssl-reqd --netrc-file "$RUNNER_TEMP/netrc" --list-only \
+                     "ftp://$FTP_SERVER:${FTP_PORT:-21}/$1"; }
+
+          start=$(list "") || { echo "::error::FTPS login failed (see the curl message above)."; exit 1; }
+          echo "FTPS login works. The FTP account starts in a folder containing:"
+          echo "$start" | sort | sed 's/^/  /'
+
+          if echo "$start" | grep -qx 'public_html'; then
+            echo "::notice::public_html is inside the starting folder: set FTP_SERVER_DIR to public_html/"
+          elif echo "$start" | grep -qxE 'index\.html|index\.php|wp-config\.php|assets|wp-admin'; then
+            echo "::notice::The starting folder looks like public_html itself: set FTP_SERVER_DIR to ./"
+          else
+            echo "::warning::public_html was not found here; look through the list above before choosing FTP_SERVER_DIR."
+          fi
+
+          if [ -n "$SERVER_DIR" ]; then
+            if target=$(list "$SERVER_DIR"); then
+              echo "Current upload folder '$SERVER_DIR' contains:"
+              echo "$target" | sort | sed 's/^/  /'
+            else
+              echo "::error::The folder '$SERVER_DIR' could not be opened on the server."
+              exit 1
+            fi
+          fi
+
   deploy:
+    # Pushes to main deploy only once FTP_SERVER_DIR is set; manual runs need mode "deploy".
+    if: >-
+      (github.event_name == 'push' && vars.FTP_SERVER_DIR != '') ||
+      (github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy')
     runs-on: ubuntu-latest
     # The first upload includes the assistant's PHP libraries (vendor/), which is slow over FTPS.
     timeout-minutes: 60
     env:
-      SERVER_DIR: ${{ inputs.server_dir || vars.FTP_SERVER_DIR || 'public_html/' }}
+      SERVER_DIR: ${{ inputs.server_dir || vars.FTP_SERVER_DIR }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Check the upload folder
         run: |
+          [ -n "$SERVER_DIR" ] || { echo "::error::Set the FTP_SERVER_DIR variable (or type a folder) after running the check mode."; exit 1; }
           case "$SERVER_DIR" in
             */) ;;
             *) echo "::error::The upload folder must end with / (got '$SERVER_DIR')."; exit 1 ;;
@@ -119,6 +191,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT || 21 }}
           protocol: ftps
           # Verify the server's TLS certificate instead of accepting any certificate.
           security: strict
