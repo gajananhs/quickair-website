@@ -1,5 +1,6 @@
 import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react'
 import { allow3DMotion, gsap, ScrollTrigger } from '@/lib/motion'
+import { useHydrated } from '@/hooks/useMediaQuery'
 import { cn } from '@/lib/cn'
 import { Container } from '@/components/ui'
 
@@ -63,7 +64,8 @@ export default function PipingShowcase() {
   const barRef = useRef(null)
   const [active, setActive] = useState(0)
   // Follows allow3DMotion(), not the device's reduced-motion setting (see lib/motion.js).
-  const [reduced] = useState(() => !allow3DMotion())
+  // The prerendered page is the animated version; the ?motion=reduce switch applies after hydration.
+  const reduced = useHydrated() && !allow3DMotion()
 
   // Not useGsap(): that hook skips its callback when the device asks for reduced motion.
   useLayoutEffect(() => {

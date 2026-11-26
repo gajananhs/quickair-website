@@ -25,7 +25,7 @@ export function buildHead({ title, description, image, type = 'website', noindex
       ['property', 'og:title', fullTitle],
       ['property', 'og:description', text],
       ['property', 'og:type', type],
-      ['property', 'og:url', url],
+      ...(noindex ? [] : [['property', 'og:url', url]]),
       ['property', 'og:image', imageUrl],
       ['property', 'og:site_name', SITE_NAME],
       ['property', 'og:locale', 'en_IN'],
@@ -56,6 +56,8 @@ function applyHead(head) {
       return el
     }).setAttribute('content', content)
   }
+  // tags a page does not set (og:url on the not-found page) must not linger from the previous page
+  if (!head.meta.some(([, key]) => key === 'og:url')) document.head.querySelector('meta[property="og:url"]')?.remove()
   if (head.canonical) {
     upsert('link[rel="canonical"]', () => Object.assign(document.createElement('link'), { rel: 'canonical' })).setAttribute('href', head.canonical)
   } else {

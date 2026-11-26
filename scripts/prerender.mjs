@@ -46,7 +46,8 @@ async function page(path) {
   return {
     head,
     body,
-    html: shell.replace('</head>', `${headHtml(head)}\n${preloads ? '    ' + preloads + '\n' : ''}  </head>`).replace('<div id="root"></div>', `<div id="root">${body}</div>`),
+    // function replacements: a plain string would treat "$&" or "$'" in page text as patterns
+    html: shell.replace('</head>', () => `${headHtml(head)}\n${preloads ? '    ' + preloads + '\n' : ''}  </head>`).replace('<div id="root"></div>', () => `<div id="root">${body}</div>`),
   }
 }
 
@@ -175,7 +176,10 @@ const vercel = {
 const vercelJson = JSON.stringify(vercel, null, 2) + '\n'
 const committed = await readFile(vercelFile, 'utf8').catch(() => '')
 if (committed !== vercelJson) {
-  if (process.env.CI || process.env.VERCEL) {
+  if (process.env.VERCEL) {
+    // Vercel has already read the committed file for this deployment; report, do not block the site
+    console.warn('Warning: vercel.json does not match the site\'s pages. Run `npm run build` locally and commit the updated vercel.json.')
+  } else if (process.env.CI) {
     problems.push('vercel.json does not match the site\'s pages: run `npm run build` locally and commit the updated vercel.json')
   } else {
     await writeFile(vercelFile, vercelJson)

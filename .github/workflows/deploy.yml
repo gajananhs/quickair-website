@@ -162,9 +162,10 @@ jobs:
           fail() { echo "::error::$1"; exit 1; }
 
           # React app, routing and SEO files
-          for f in index.html .htaccess robots.txt sitemap.xml; do
+          for f in index.html 404.html _pages/about.html _pages/products.html .htaccess robots.txt sitemap.xml; do
             [ -s "dist/$f" ] || fail "dist/$f is missing or empty."
           done
+          grep -q 'RewriteRule \^(about)\$ _pages/' dist/.htaccess || fail "dist/.htaccess has no page routes: the prerender step did not run."
           ls dist/assets/*.js >/dev/null 2>&1 || fail "dist/assets has no JavaScript bundles."
           ls dist/assets/*.css >/dev/null 2>&1 || fail "dist/assets has no stylesheet."
           grep -q '<div id="root">' dist/index.html || fail "dist/index.html has no React root element."

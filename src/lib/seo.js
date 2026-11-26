@@ -60,7 +60,7 @@ export const organizationSchema = () => ({
   email: company.email,
   telephone: '+91' + company.phone,
   address: postalAddress,
-  contactPoint: [{ '@type': 'ContactPoint', contactType: 'sales', telephone: '+91' + company.phone, email: company.email, areaServed: 'IN' }],
+  contactPoint: [{ '@type': 'ContactPoint', contactType: 'sales', telephone: '+91' + company.phone, email: company.email }],
 })
 
 export const websiteSchema = () => ({
@@ -85,7 +85,6 @@ export const localBusinessSchema = () => ({
   telephone: '+91' + company.phone,
   address: postalAddress,
   hasMap: company.address.mapUrl,
-  parentOrganization: { '@id': ORG_ID },
 })
 
 /** crumbs: [[label, path], …] below Home; the last one is the current page. */
