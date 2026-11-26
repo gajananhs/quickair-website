@@ -1,10 +1,86 @@
-# Single-page app: send every URL that is not a real file to index.html,
-# so pages such as /products open directly and survive a refresh.
+# Quick Air website (React single-page app) + "Talk to Quickair Assistant" PHP API.
+#
+# Request flow:
+#   1. /.well-known/ (SSL and domain-verification challenges) is served untouched.
+#   2. http:// and quickair.in are sent to https://www.quickair.in in a single 301.
+#   3. Private assistant files, Composer files and dotfiles are refused (403).
+#   4. Existing files run or download as normal, so /api/assistant.php runs through PHP.
+#   5. Missing files under /api/ or /assets/, and missing URLs with a file extension,
+#      get a real 404 instead of the React page.
+#   6. Every other URL (/products, /about, /products/<slug>, /blog/<slug>, ...) gets
+#      index.html, and React Router shows the page.
+
+# The React app is the homepage, even if an old index.php is still on the server.
+DirectoryIndex index.html
+
+# No folder listings; no guessing files from extension-less names (would break /products etc.).
+Options -Indexes -MultiViews
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
+
+  # 1. SSL / ACME challenges and other /.well-known/ files: serve as they are.
+  RewriteRule ^\.well-known/ - [L]
+
+  # 2. Canonical address: https://www.quickair.in (only for the real domain, so a
+  #    Hostinger preview or temporary domain still works).
+  RewriteCond %{HTTP_HOST} ^quickair\.in$ [NC]
+  RewriteRule ^ https://www.quickair.in%{REQUEST_URI} [R=301,L]
+
+  RewriteCond %{HTTP_HOST} ^www\.quickair\.in$ [NC]
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://www.quickair.in%{REQUEST_URI} [R=301,L]
+
+  # 3. Never serve private files: the assistant's settings, prompt, API key (config.php),
+  #    rate-limit counters and Composer libraries, Composer manifests anywhere, and
+  #    dotfiles such as .env, .git or the deploy state file.
+  RewriteRule ^api/private(/|$) - [F,L]
+  RewriteRule (^|/)vendor(/|$) - [F,L]
+  RewriteRule (^|/)composer\.(json|lock)$ - [F,L]
+  RewriteRule (^|/)\. - [F,L]
+
+  # 4. Real files are served as they are; .php files run through the server's PHP handler.
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+
+  # 5. Missing API endpoints and build assets: real 404, not the React page.
+  RewriteRule ^(api|assets)(/|$) - [L]
+  #    Any other missing URL that ends in a file extension (.js, .css, .png, .php, .xml ...).
+  RewriteCond %{REQUEST_URI} !^/index\.html$
+  RewriteRule \.[A-Za-z0-9]{1,8}$ - [L]
+
+  # 6. React routes. Real folders (other than the site root) are left to the server.
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+
+  # index.html must always be revalidated so visitors pick up new deploys straight away.
+  <FilesMatch "^index\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+
+  # Vite build files carry a content hash in their names: cache them for a year.
+  <FilesMatch "-[A-Za-z0-9_-]{8}\.(js|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Photos, logos and documents (not hashed): cache for 30 days.
+  <FilesMatch "\.(png|jpe?g|gif|webp|avif|svg|ico|pdf|mp4|webm)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+
+  # SEO files: refresh daily.
+  <FilesMatch "^(robots\.txt|sitemap\.xml)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+  # PHP responses set their own headers (the assistant sends Cache-Control: no-store).
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/xml application/javascript application/json image/svg+xml
 </IfModule>
