@@ -5,7 +5,8 @@ name: Deploy to Hostinger
 #           Uploads nothing. Says which secrets are set (never their values), connects
 #           over FTPS with them and lists the FTP account's folders, so the upload folder
 #           can be confirmed against the real Hostinger account.
-#   deploy  Every push to main once FTP_SERVER_DIR is set, or manually with "deploy".
+#   deploy  Every push to main once FTP_SERVER_DIR is set, or manually with "deploy"
+#           (started from the main branch; other branches are never uploaded).
 #           Builds the site and uploads dist/ over FTPS.
 #
 # Repository secrets (Settings -> Secrets and variables -> Actions -> Secrets):
@@ -101,10 +102,13 @@ jobs:
           fi
 
   deploy:
-    # Pushes to main deploy only once FTP_SERVER_DIR is set; manual runs need mode "deploy".
+    # Only the main branch is ever uploaded. Pushes to main deploy once FTP_SERVER_DIR is
+    # set; manual runs need mode "deploy" and must be started from main.
     if: >-
-      (github.event_name == 'push' && vars.FTP_SERVER_DIR != '') ||
-      (github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy')
+      github.ref == 'refs/heads/main' && (
+        (github.event_name == 'push' && vars.FTP_SERVER_DIR != '') ||
+        (github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy')
+      )
     runs-on: ubuntu-latest
     # The first upload includes the assistant's PHP libraries (vendor/), which is slow over FTPS.
     timeout-minutes: 60
