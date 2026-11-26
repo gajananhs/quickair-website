@@ -34,12 +34,14 @@ export default function SplitText({ as: Tag = 'span', text, className, delay = 0
           scrollTrigger: immediate ? undefined : { trigger: ref.current, start: REVEAL_START, once: true },
         },
       )
+      // the words now sit in their start position: lift the CSS pre-hide (see index.css)
+      ref.current.setAttribute('data-split-ready', '')
     },
     [delay, immediate, stagger],
   )
 
   return (
-    <Tag ref={ref} className={tagClass} {...rest}>
+    <Tag ref={ref} data-split="" className={tagClass} {...rest}>
       {segments.map(([segment, segmentClass], i) =>
         segment.split(' ').map((word, j) => (
           <span key={`${i}-${j}`} className="split-word">

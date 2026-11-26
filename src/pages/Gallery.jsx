@@ -68,7 +68,7 @@ export default function Gallery() {
 
   return (
     <>
-      <Seo title="Gallery" description={galleryIntro.lead} image={photos[0].src} />
+      <Seo title="Compressed Air Piping Installation Gallery" description="Photos of Quickair push-fit aluminium piping installed in compressor rooms, on manifolds and valves, on overhead lines and in retrofit and large-bore projects." image={photos[0].src} crumbs={[['Gallery']]} />
       <PageHero crumbs={[['Gallery']]} title={galleryIntro.title} lead={galleryIntro.lead} image="/qa/gallery/run-through-a-new-steel-structure.jpg" />
 
       <section className="theme-dark border-b border-(--line)">

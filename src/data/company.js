@@ -1,19 +1,19 @@
 /**
- * Quick Air company facts, verbatim from https://www.quickair.in (crawled 18 Nov 2026).
+ * Quickair company facts, verbatim from https://www.quickair.in (crawled 18 Nov 2026).
  * Source of truth: CONTENT_INVENTORY.md. Edit here, never inside components.
  *
  * Note: Quickair is the modular piping brand of Canares Automation Pvt. Ltd.
  * The legal entity, address and e-mail addresses below are the ones the
- * Quick Air site itself publishes.
+ * Quickair site itself publishes.
  */
 
 export const company = {
   brand: 'Quickair',
-  siteName: 'Quick Air',
+  siteName: 'Quickair',
   legalName: 'Canares Automation Pvt. Ltd.',
   tagline: 'Quick. Modular. Efficient.',
   summary: 'Quickair is the modular piping brand of Canares Automation Pvt. Ltd. We give industry end-to-end engineering support for compressed air, vacuum and industrial gases.',
-  metaDescription: 'Quickair aluminium compressed air piping: leak-free, modular push-fit pipes and fittings for compressed air, vacuum and industrial gases. 26+ years of modular piping experience.',
+  metaDescription: 'Quickair aluminium compressed air piping: modular push-fit pipes and fittings for compressed air, vacuum and industrial gases. 26+ years of modular piping experience.',
   phone: '9449840507',
   phoneDisplay: '+91 94498 40507',
   phoneHref: 'tel:+919449840507',
@@ -79,7 +79,7 @@ export const intro = {
   badge: { value: '26+', label: 'years of modular piping experience' },
   /** From the earlier homepage (/home/) */
   extra: [
-    'QuickAir’s aluminium compressed air piping system delivers end-to-end engineering support — we’re India’s largest manufacturer of modular pipes & systems.',
+    'Quickair’s aluminium compressed air piping system delivers end-to-end engineering support — we’re India’s largest manufacturer of modular pipes & systems.',
     'Canares Automation Pvt. Ltd. has been at the forefront of modular piping innovations for over two decades. As India’s only manufacturer of modular pipe fittings, we specialize in providing cost-effective, energy-efficient, and high-performance piping solutions for global industries.',
     'We are setting an Global benchmark in terms of product, quality and services across INDIA, USA , AUSTRALIA, GERMANY, SERBIA .',
   ],

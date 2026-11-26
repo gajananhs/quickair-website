@@ -3,10 +3,13 @@ import { ArrowLeft, ArrowRight, Check, Download } from 'lucide-react'
 import { fullName, getProduct, groups, productsIn } from '@/data/products'
 import { enquiry } from '@/data/company'
 import { ROUTES } from '@/data/navigation'
+import { PRODUCT_RESOURCES } from '@/data/articleSeo'
+import { productSchema } from '@/lib/seo'
 import { Button, Container, Eyebrow, Section, Seo } from '@/components/ui'
 import SpecTable from '@/components/sections/SpecTable'
 import ContactCta from '@/components/sections/ContactCta'
 import JointDiagram from '@/components/sections/JointDiagram'
+import RelatedLinks from '@/components/sections/RelatedLinks'
 import Reveal from '@/components/motion/Reveal'
 import SplitText from '@/components/motion/SplitText'
 import ImageReveal from '@/components/motion/ImageReveal'
@@ -18,6 +21,11 @@ const GROUP_IMAGE = {
   valves: '/qa/gallery/large-bore-line-with-flanged-valves.jpg',
 }
 
+const GROUP_IMAGE_ALT = {
+  extrusions: 'Piping run through a new steel structure',
+  valves: 'Large-bore line with flanged valves',
+}
+
 export default function ProductDetail() {
   const { slug } = useParams()
   const product = getProduct(slug)
@@ -25,10 +33,19 @@ export default function ProductDetail() {
   const group = groups.find((g) => g.id === product.group)
   const siblings = productsIn(product.group).filter((p) => p.slug !== product.slug)
   const name = fullName(product)
+  const path = `${ROUTES.products}/${product.slug}`
+  const crumbs = [['Products', ROUTES.products], [name]]
 
   return (
     <>
-      <Seo title={name} description={product.specs ? product.specs.slice(0, 4).map(([k, v]) => `${k}: ${v}`).join('. ') : product.features.slice(0, 3).join(' ')} image={product.image?.src} />
+      <Seo
+        title={product.seo.title}
+        description={product.seo.description}
+        image={product.image?.src ?? GROUP_IMAGE[product.group]}
+        type="product"
+        crumbs={crumbs}
+        schema={[productSchema(product, { name: `${group.title}: ${name}`, description: product.seo.description, path, category: group.title })]}
+      />
 
       {/* product hero */}
       <section className="theme-dark relative isolate overflow-clip pt-header">
@@ -41,8 +58,11 @@ export default function ProductDetail() {
                 <ArrowLeft className="size-3.5" aria-hidden="true" /> {group.title}
               </Link>
             </Reveal>
-            <SplitText as="h1" immediate delay={0.15} text={product.name} className="mt-6 block text-h1 text-metal" />
-            {product.variant && <Reveal delay={0.4} start="top bottom" className="mt-3 font-display text-h3 font-semibold text-cyan-400">{product.variant}</Reveal>}
+            {/* one heading for the whole product name: "Push Fit Type" + "Aluminium to aluminium" */}
+            <h1 className="mt-6">
+              <SplitText immediate delay={0.15} text={product.name} className="block text-h1 text-metal" />
+              {product.variant && <Reveal as="span" delay={0.4} start="top bottom" className="mt-3 block font-display text-h3 font-semibold text-cyan-400">{product.variant}</Reveal>}
+            </h1>
             <Reveal delay={0.5} start="top bottom" className="mt-6 max-w-xl text-lead text-alu-300">{group.lead}</Reveal>
             <Reveal delay={0.65} start="top bottom" className="mt-9 flex flex-wrap gap-3">
               <Button to="#enquiry" icon={<ArrowRight />}>Enquire now</Button>
@@ -54,7 +74,7 @@ export default function ProductDetail() {
               <ImageReveal eager src={product.image.src} alt={product.image.alt} fit="contain" className="aspect-square" />
             </Tilt>
           ) : (
-            <ImageReveal eager parallax src={GROUP_IMAGE[product.group]} alt="" className="aspect-[4/3] rounded-panel" />
+            <ImageReveal eager parallax src={GROUP_IMAGE[product.group]} alt={GROUP_IMAGE_ALT[product.group]} className="aspect-[4/3] rounded-panel" />
           )}
         </Container>
         {product.key && (
@@ -102,6 +122,11 @@ export default function ProductDetail() {
             </Reveal>
           )}
         </div>
+      </Section>
+
+      {/* guides, case studies and tools that go with this product */}
+      <Section theme="light" className="py-12!">
+        <RelatedLinks title="Guides and tools for this product" links={[...PRODUCT_RESOURCES[product.group], { label: 'All product catalogues (PDF)', to: ROUTES.downloads }]} />
       </Section>
 
       {/* other products in the group */}

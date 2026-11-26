@@ -46,7 +46,7 @@ function Steps() {
 export default function Services() {
   return (
     <>
-      <Seo title={services.heroTitle} description={services.heroLead} />
+      <Seo title="Compressed Air Piping Services: Design, Supply, Installation" description="End-to-end engineering support for compressed air, vacuum and inert gas lines: design, supply, installation and pressure testing of Quickair aluminium piping." image="/qa/home/compressor-line-with-valves-and-drop-legs.jpg" crumbs={[[services.eyebrow]]} />
       <PageHero crumbs={[[services.eyebrow]]} title={services.heroTitle} lead={services.heroLead} image="/qa/home/compressor-line-with-valves-and-drop-legs.jpg" size="lg">
         <Button to="#enquiry" icon={<ArrowRight />}>Get a quote</Button>
         <Button to="#steps" variant="secondary">Our steps</Button>

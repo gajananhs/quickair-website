@@ -1,9 +1,13 @@
 import { useSearchParams } from 'react-router-dom'
-import { ArrowUpRight, Mail, MapPin, Phone, Store } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Mail, MapPin, Phone, Store } from 'lucide-react'
 import { company, contact, dealerNetwork, telHref } from '@/data/company'
+import { ROUTES } from '@/data/navigation'
+import { localBusinessSchema } from '@/lib/seo'
+import { useHydrated } from '@/hooks/useMediaQuery'
 import { Button, Eyebrow, Section, Seo } from '@/components/ui'
 import PageHero from '@/components/sections/PageHero'
 import EnquiryForm from '@/components/sections/EnquiryForm'
+import ZoneContacts from '@/components/sections/ZoneContacts'
 import Reveal from '@/components/motion/Reveal'
 import SplitText from '@/components/motion/SplitText'
 import Tilt from '@/components/motion/Tilt'
@@ -12,12 +16,14 @@ const CARD_ICONS = [Mail, Phone, MapPin]
 
 export default function Contact() {
   const [params] = useSearchParams()
-  const product = params.get('product')
-  const dealer = params.get('type') === 'dealer'
+  // ?product= and ?type=dealer are not known when the page is prerendered
+  const hydrated = useHydrated()
+  const product = hydrated ? params.get('product') : null
+  const dealer = hydrated && params.get('type') === 'dealer'
 
   return (
     <>
-      <Seo title="Contact" description={contact.lead} />
+      <Seo title="Contact Quickair: Quotes, Dealers and Technical Support" description={`${contact.lead} Head office: ${company.address.short}.`} image="/qa/home/quickair-piping-connected-to-a-compressor.jpg" crumbs={[['Contact']]} schema={[localBusinessSchema()]} />
       <PageHero crumbs={[['Contact']]} title={contact.title} lead={contact.lead} image="/qa/home/quickair-piping-connected-to-a-compressor.jpg">
         <Button href={company.phoneHref} icon={<Phone />}>Call {company.phone}</Button>
         <Button href={`mailto:${company.email}`} variant="secondary" icon={<Mail />}>{company.email}</Button>
@@ -91,20 +97,7 @@ export default function Contact() {
         <Reveal><Eyebrow>{contact.zonesEyebrow}</Eyebrow></Reveal>
         <SplitText as="h2" text={contact.zonesTitle} className="mt-5 block text-h2" />
         <Reveal className="mt-4 text-lead text-(--fg-muted)">{contact.zonesLead}</Reveal>
-        <Reveal as="ul" stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {contact.zones.map((zone) => (
-            <Tilt as="li" key={zone.zone} className="rounded-panel border border-white/10 bg-white/[0.04] p-7">
-              <span className="relative flex size-3">
-                <span className="absolute inline-flex h-full w-full animate-ping-soft rounded-full bg-cyan-400" />
-                <span className="relative inline-flex size-3 rounded-full bg-cyan-400" />
-              </span>
-              <span className="mt-5 block font-display text-eyebrow font-semibold uppercase text-cyan-400">{zone.zone}</span>
-              <span className="mt-2 block font-display text-2xl font-semibold">{zone.person}</span>
-              <a href={`mailto:${zone.email}`} className="mt-4 block text-sm break-all text-alu-300 hover:text-cyan-400">{zone.email}</a>
-              <a href={telHref(zone.phone)} className="mt-1 block font-display font-semibold hover:text-cyan-400">{zone.phone}</a>
-            </Tilt>
-          ))}
-        </Reveal>
+        <ZoneContacts />
       </Section>
 
       {/* dealers */}
@@ -117,6 +110,7 @@ export default function Contact() {
           </div>
           <Reveal className="flex flex-wrap gap-3 lg:justify-end">
             <Button href={company.dealerRegistrationUrl} target="_blank" rel="noreferrer" icon={<ArrowUpRight />}>{dealerNetwork.cta}</Button>
+            <Button to={ROUTES.dealers} variant="secondary" icon={<ArrowRight />}>About the dealer programme</Button>
           </Reveal>
         </div>
       </Section>

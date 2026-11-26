@@ -1,12 +1,27 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useLocation } from 'react-router-dom'
 import Lenis from 'lenis'
 import { gsap, ScrollTrigger, prefersReducedMotion } from '@/lib/motion'
 
-const LenisContext = createContext(null)
+/**
+ * The Lenis instance is kept in a small store instead of React context. A context
+ * value that changes right after start-up makes React throw away prerendered
+ * content that is still waiting for its script chunk and draw it again; a store
+ * only re-renders the components that read it.
+ */
+let current = null
+const listeners = new Set()
+const setCurrent = (instance) => {
+  current = instance
+  listeners.forEach((notify) => notify())
+}
+const subscribe = (notify) => {
+  listeners.add(notify)
+  return () => listeners.delete(notify)
+}
 
 /** Access the Lenis instance (null when reduced motion is on). */
-export const useLenis = () => useContext(LenisContext)
+export const useLenis = () => useSyncExternalStore(subscribe, () => current, () => null)
 
 /**
  * Owns the single Lenis instance, drives it from the GSAP ticker so
@@ -27,12 +42,14 @@ export default function SmoothScrollProvider({ children }) {
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
     setLenis(instance)
+    setCurrent(instance)
     window.__lenis = instance // handle used by the gallery lightbox and scroll tests
 
     return () => {
       gsap.ticker.remove(tick)
       instance.destroy()
       setLenis(null)
+      setCurrent(null)
     }
   }, [])
 
@@ -61,5 +78,5 @@ export default function SmoothScrollProvider({ children }) {
     }
   }, [pathname])
 
-  return <LenisContext.Provider value={lenis}>{children}</LenisContext.Provider>
+  return children
 }

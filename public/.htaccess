@@ -1,14 +1,19 @@
-# Quick Air website (React single-page app) + "Talk to Quickair Assistant" PHP API.
+# Quick Air website (prerendered React app) + "Talk to Quickair Assistant" PHP API.
+#
+# The build writes one static HTML file per page (dist/_pages/<route>.html, home page
+# in index.html) and fills in the list of valid routes below, so the server knows
+# which addresses exist.
 #
 # Request flow:
 #   1. /.well-known/ (SSL and domain-verification challenges) is served untouched.
 #   2. http:// and quickair.in are sent to https://www.quickair.in in a single 301.
 #   3. Private assistant files, Composer files and dotfiles are refused (403).
 #   4. Existing files run or download as normal, so /api/assistant.php runs through PHP.
-#   5. Missing files under /api/ or /assets/, and missing URLs with a file extension,
-#      get a real 404 instead of the React page.
-#   6. Every other URL (/products, /about, /products/<slug>, /blog/<slug>, ...) gets
-#      index.html, and React Router shows the page.
+#   5. Old WordPress addresses and addresses with a trailing slash get one 301 to the
+#      current address.
+#   6. Known routes (/products, /about, /products/<slug>, /blog/<slug>, ...) get their
+#      prerendered page.
+#   7. Everything else is a real 404, shown with the site's own not-found page.
 
 # The React app is the homepage, even if an old index.php is still on the server.
 DirectoryIndex index.html
@@ -41,26 +46,30 @@ Options -Indexes -MultiViews
   RewriteRule (^|/)composer\.(json|lock)$ - [F,L]
   RewriteRule (^|/)\. - [F,L]
 
+  # The prerendered files have one public address each: /_pages/about.html -> /about
+  RewriteCond %{THE_REQUEST} \s/+_pages/([^\s?]+)\.html[\s?] [NC]
+  RewriteRule ^ /%1 [R=301,L]
+
   # 4. Real files are served as they are; .php files run through the server's PHP handler.
   RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
 
-  # 5. Missing API endpoints and build assets: real 404, not the React page.
-  RewriteRule ^(api|assets)(/|$) - [L]
-  #    Any other missing URL that ends in a file extension (.js, .css, .png, .php, .xml ...).
-  RewriteCond %{REQUEST_URI} !^/index\.html$
-  RewriteRule \.[A-Za-z0-9]{1,8}$ - [L]
+  # 5 and 6 are written by the build (scripts/prerender.mjs) from the site's route list.
+  # BEGIN prerendered routes
+  # (empty in the source file: `npm run build` fills this in inside dist/.htaccess)
+  # END prerendered routes
 
-  # 6. React routes. Real folders (other than the site root) are left to the server.
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ index.html [L]
+  # 7. No rule matched: the address does not exist. The server answers 404 (see ErrorDocument).
 </IfModule>
+
+# Unknown addresses: real HTTP 404 with the site's own page (never the homepage).
+ErrorDocument 404 /404.html
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
 
-  # index.html must always be revalidated so visitors pick up new deploys straight away.
-  <FilesMatch "^index\.html$">
+  # Pages must always be revalidated so visitors pick up new deploys straight away.
+  <FilesMatch "\.html$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
 

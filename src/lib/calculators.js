@@ -3,7 +3,7 @@
  * (pipe size, pressure drop and electricity power).
  */
 
-/** QuickAir pipe sizes: outer diameter → inner diameter (mm) */
+/** Quickair pipe sizes: outer diameter → inner diameter (mm) */
 export const QUICKAIR_PIPES = { 20: 17.5, 25: 21.84, 32: 28.72, 40: 35.86, 50: 45.92, 63: 58.88, 76: 72.12, 90: 84.82, 113: 109.36, 168: 163.18, 205: 197.84, 260: 250, 290: 280 }
 
 export const FLOW_UNITS = { cfm: 'CFM', lps: 'L/s', m3hr: 'm³/hr', m3min: 'm³/min' }
@@ -27,7 +27,7 @@ export const flowPressureDrop = (Q, L, d, P) => (d > 0 && P > 0 ? (7.57 * Math.p
 const standardSize = (d) => (d < 21 ? 20 : d <= 28 ? 25 : d <= 35 ? 32 : d <= 45 ? 40 : d <= 58 ? 50 : d <= 72 ? 63 : d <= 85 ? 76 : d <= 105 ? 90 : d <= 140 ? 113 : d <= 183 ? 168 : d <= 220 ? 205 : d <= 270 ? 260 : 290)
 
 /**
- * QuickAir Pipe Size Calculator.
+ * Quickair Pipe Size Calculator.
  * Allowed drop: header 0.1 bar, sub header 0.15 bar, drop line 0.2 bar.
  * A closed loop halves the flow in each leg.
  */
@@ -42,7 +42,7 @@ export function pipeSize({ flow, flowUnit, pressure, length, lengthUnit, system,
   return { Q, L, allowed, calculated, outer, inner, drop: flowPressureDrop(Q, L, inner, pressure), dropFor: (od) => flowPressureDrop(Q, L, QUICKAIR_PIPES[od], pressure) }
 }
 
-/** QuickAir Pressure Drop Calculator (Darcy-Weisbach). */
+/** Quickair Pressure Drop Calculator (Darcy-Weisbach). */
 export function pressureDrop({ material, medium, pressure, flow, flowUnit, length, lengthUnit, system, inner }) {
   let L = toMeters(length, lengthUnit)
   const f = FRICTION[material] ?? 0.015

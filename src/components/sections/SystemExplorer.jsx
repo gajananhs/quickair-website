@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn'
 const AssemblyCanvas = lazy(() => import('@/components/three/AssemblyCanvas'))
 
 /**
- * Interactive 3D diagram of a Quick Air line.
+ * Interactive 3D diagram of a Quickair line.
  * Drag to rotate, hover a part to see what it is, and use the slider to
  * pull the assembly apart into an exploded view.
  */

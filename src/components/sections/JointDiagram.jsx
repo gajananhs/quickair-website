@@ -12,7 +12,7 @@ const SPOTS = {
 }
 
 /**
- * Hoverable technical diagram: a cut-away of a Quick Air joint.
+ * Hoverable technical diagram: a cut-away of a Quickair joint.
  * Hovering (or focusing) a hotspot or a row highlights the part and shows its
  * specification. All values come from the product specification tables.
  */
@@ -25,7 +25,7 @@ export default function JointDiagram({ type = 'push-fit', className }) {
 
   return (
     <div className={cn('grid items-center gap-8 lg:grid-cols-[1.25fr_1fr] lg:gap-12', className)}>
-      <svg viewBox="0 0 640 300" role="img" aria-label={`Cut-away diagram of a Quick Air ${crimp ? 'crimping type integrated' : 'push fit'} joint`} className="w-full">
+      <svg viewBox="0 0 640 300" role="img" aria-label={`Cut-away diagram of a Quickair ${crimp ? 'crimping type integrated' : 'push fit'} joint`} className="w-full">
         <defs>
           <linearGradient id="jd-pipe" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#5fb6ee" />

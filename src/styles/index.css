@@ -298,6 +298,11 @@ html:not(.motion-ok) .motion-3d-caption {
   display: inline-block;
   will-change: transform;
 }
+/* Prerendered headlines stay hidden until the app has put the words in their start
+   position, so they never show and then jump (only when JS + motion are available). */
+html.motion-ok [data-split]:not([data-split-ready]) .split-word > span {
+  visibility: hidden;
+}
 
 /* Thin luminous divider */
 @utility rule-glow {

@@ -34,6 +34,8 @@ export const routes = [
   { path: ROUTES.blog, element: page(blog, 'BlogIndex') },
   { path: '/blog/:slug', element: page(blog, 'Article') },
 
+  { path: ROUTES.downloads, element: page(() => import('@/pages/Downloads')) },
+  { path: ROUTES.dealers, element: page(() => import('@/pages/Dealers')) },
   { path: ROUTES.contact, element: page(() => import('@/pages/Contact')) },
   { path: '*', element: page(() => import('@/pages/NotFound')) },
 ]

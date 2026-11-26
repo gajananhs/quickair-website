@@ -8,7 +8,7 @@ const AssemblyCanvas = lazy(() => import('@/components/three/AssemblyCanvas'))
 /**
  * Stages of the scroll story. `at` is the progress where the stage begins
  * (matches the timeline in createAssemblyScene). All wording is original
- * Quick Air copy (homepage, products and about pages).
+ * Quickair copy (homepage, products and about pages).
  */
 const STAGES = [
   {
@@ -88,7 +88,7 @@ export default function PipingShowcase() {
   }, [reduced])
 
   return (
-    <section ref={sectionRef} id="system" aria-label="The Quick Air piping system in 3D" className="theme-dark relative isolate overflow-clip bg-navy-950!">
+    <section ref={sectionRef} id="system" aria-label="The Quickair piping system in 3D" className="theme-dark relative isolate overflow-clip bg-navy-950!">
       <div className={cn('relative flex flex-col', reduced ? 'py-(--section-y)' : 'h-svh')}>
         <div aria-hidden="true" className="bg-grid absolute inset-0 -z-10 mask-[radial-gradient(ellipse_at_center,black,transparent_78%)]" />
         <div aria-hidden="true" className="bg-glow absolute top-1/2 left-1/2 -z-10 size-[min(70rem,140vw)] -translate-x-1/2 -translate-y-1/2" />
