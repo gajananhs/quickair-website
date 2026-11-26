@@ -70,7 +70,9 @@ jobs:
       - name: Log in over FTPS and list folders (uploads nothing)
         run: |
           umask 077
-          printf 'machine %s login %s password %s\n' "$FTP_SERVER" "$FTP_USERNAME" "$FTP_PASSWORD" > "$RUNNER_TEMP/netrc"
+          # quoted, so a user name or password with spaces, quotes or backslashes still works
+          quote() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+          printf 'machine %s login "%s" password "%s"\n' "$FTP_SERVER" "$(quote "$FTP_USERNAME")" "$(quote "$FTP_PASSWORD")" > "$RUNNER_TEMP/netrc"
           trap 'rm -f "$RUNNER_TEMP/netrc"' EXIT
           # --ssl-reqd: explicit FTPS (AUTH TLS) or nothing; the certificate is verified as in the upload
           list() { curl --silent --show-error --ssl-reqd --netrc-file "$RUNNER_TEMP/netrc" --list-only \
